@@ -10,19 +10,19 @@ import java.util.Map;
 
 public class IdTable {
 
-    private Map<String, String> idTable;
+    private boolean isAnnounced = false;
 
-    public Map<String, String> getIdTable() {
-        return idTable;
-    }
-
+    private IdentityHashMap<String, String> idTable;
     private Map<Integer, Character> subLevel;
     private Integer level;
-
     public IdTable() {
         this.idTable = new IdentityHashMap<>();
         this.subLevel = new HashMap<>();
         this.level = 0;
+    }
+
+    public Map<String, String> getIdTable() {
+        return idTable;
     }
 
     public Integer getLevel() {
@@ -33,10 +33,10 @@ public class IdTable {
         this.level = level;
     }
 
-    public void addSubLeve(Integer level){
+    public void addSubLeve(Integer level) {
         Character subLvl = this.subLevel.get(level);
 
-        if(subLvl == null){
+        if (subLvl == null) {
             this.subLevel.put(level, 'a');
         } else {
             subLvl = (char) (subLvl.charValue() + 1);
@@ -58,11 +58,20 @@ public class IdTable {
         for (Node childBody : childFunc.getListChild()) {
             if (childBody.getTokenType() == TokenType.COMMAND) {
                 for (Node childCommand : childBody.getListChild()) {
-                    if (childCommand.getTokenType() == TokenType.NAME) {
-                        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                        idTable.put(childCommand.getTokenValue().toString(), lvl);
-                    } else if (childCommand.getTokenType() == TokenType.BODY) {
-                        adding(childCommand);
+                    switch (childCommand.getTokenType()) {
+                        case BODY:
+                            adding(childCommand);
+                            break;
+                        case NAME:
+                            if (isAnnounced) {
+                                String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+                                idTable.put(childCommand.getTokenValue().toString(), lvl);
+                                isAnnounced = false;
+                            }
+                            break;
+                        case TYPE:
+                            isAnnounced = true;
+                            break;
                     }
                 }
             } else if (childBody.getTokenType() == TokenType.EMPTY) {

@@ -2,7 +2,6 @@ package parser;
 
 import lexer.Token;
 import lexer.TokenType;
-import lombok.Getter;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -11,17 +10,15 @@ import java.util.List;
 
 public class Node {
 
-    @Getter
     private Node parent;
 
     private Token<?> value;
 
-    @Getter
     private List<Node> listChild;
 
     public Node(Token<?> newValue) {
         value = newValue;
-        listChild = new ArrayList<Node>();
+        listChild = new ArrayList<>();
     }
 
     public Node(TokenType typeValue) {
@@ -42,17 +39,14 @@ public class Node {
     }
 
     public void setLeft(Node leftChild) {
-        // указываем индекс, чтобы явно перед всеми другими добавил
         listChild.add(0, leftChild);
     }
 
     public void setParent(Node parent) {
-        // указываем индекс, чтобы явно перед всеми другими добавил
         this.parent = parent;
     }
 
     public void setRight(Node rightChild) {
-        // добавляем в конец списка, т.е. всегда справа
         listChild.add(rightChild);
     }
 
@@ -62,6 +56,14 @@ public class Node {
         } else {
             throw new RuntimeException("Parser.Node have more than one children");
         }
+    }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public List<Node> getListChild() {
+        return listChild;
     }
 
     public boolean match(TokenType type) {
