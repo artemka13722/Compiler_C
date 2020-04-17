@@ -7,11 +7,16 @@ public class Lexer {
     private Buffer buffer;
 
     private Token<?> currentToken = null;
+    private Token<?> parentToken = null;
 
     private boolean isEndSourceCode = false;
 
     public Lexer(Buffer buffer) {
         this.buffer = buffer;
+    }
+
+    public Token<?> getParentToken(){
+        return parentToken;
     }
 
     public Token<?> peekToken() {
@@ -25,6 +30,7 @@ public class Lexer {
         if (currentToken == null) {
             makeToken();
         }
+        parentToken = currentToken;
         Token<?> result = currentToken;
         makeToken();
 

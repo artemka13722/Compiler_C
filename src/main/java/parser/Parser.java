@@ -21,7 +21,7 @@ public class Parser {
                 result.setRight(curFunction);
             } while (!curFunction.match(TokenType.EMPTY));
         } catch (RuntimeException e) {
-            Token<?> errorToken = lexer.peekToken();
+            Token<?> errorToken = lexer.getParentToken();
             System.out.printf((char) 27 + "[31m %s LOC<%d:%d>\n", e.getMessage(), errorToken.getRow(), errorToken.getCol());
             System.exit(0);
         }
@@ -155,14 +155,28 @@ public class Parser {
             case NAME:
                 lexer.getToken();
                 Token<?> assignToken = lexer.getToken();
-                if (assignToken.match(TokenType.ASSIGNMENT)) {
-                    result.setLeft(new Node(whatEver));
-                    result.setRight(new Node(assignToken));
-                    result.setRight(parseExpr());
-                } else if (assignToken.match(TokenType.BRACET_OPEN)) {
-                    result.setRight(parseArrayAssigment());
-                } else {
-                    throw new RuntimeException("P: отсутвует знак = после имени переменной");
+
+                switch (assignToken.getTokenType()){
+
+                    case ASSIGNMENT:
+                        result.setLeft(new Node(whatEver));
+                        result.setRight(new Node(assignToken));
+                        result.setRight(parseExpr());
+                        break;
+                    case BRACET_OPEN:
+                        result.setRight(parseArrayAssigment());
+                        break;
+                    case BRACKET_OPEN:
+                        result = new Node(TokenType.CALL_FUNCTION);
+                        result.setLeft(new Node(whatEver));
+                        result.setRight(parseArgList());
+                        Token<?> nextToken = lexer.getToken();
+                        if (!nextToken.match(TokenType.BRACKET_CLOSE)) {
+                            throw new RuntimeException("P: отсвутствует закрывающая скобка");
+                        }
+                        break;
+                    default:
+                        throw new RuntimeException("P: отсутвует знак = после имени переменной");
                 }
                 break;
             case RETURN:
