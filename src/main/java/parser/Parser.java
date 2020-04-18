@@ -370,6 +370,7 @@ public class Parser {
                 case ASSIGNMENT:
                     result.setRight(parseArrayBody());
                     break;
+                case BRACKET_CLOSE:
                 case SEMICOLON:
                 case SIGN:
                     return result;
