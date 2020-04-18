@@ -54,7 +54,7 @@ public class Node {
         if (listChild.size() > 0) {
             return listChild.get(0);
         } else {
-            throw new RuntimeException("Parser.Node have more than one children");
+            throw new RuntimeException("P: нода имеет более одного потомка");
         }
     }
 

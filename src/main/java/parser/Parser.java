@@ -527,7 +527,7 @@ public class Parser {
     }
 
     public Node parseAtom() {
-        Node result = null;
+        Node result;
 
         Token<?> token = lexer.getToken();
         switch (token.getTokenType()) {
@@ -539,6 +539,7 @@ public class Parser {
                 } else {
                     throw new RuntimeException("P: отсутсвует закрывающая скобка");
                 }
+            case CHAR:
             case NUMBER:
                 result = new Node(token);
                 break;
