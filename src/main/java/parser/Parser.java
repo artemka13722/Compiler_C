@@ -351,21 +351,30 @@ public class Parser {
 
         lexer.getToken();
         Token<?> numberToken = lexer.getToken();
-        if (numberToken.match(TokenType.NUMBER)) {
-            result.setLeft(new Node(numberToken.getTokenType()));
-        } else {
-            throw new RuntimeException("P: не указан индекс массива");
+
+        switch (numberToken.getTokenType()){
+            case NUMBER:
+            case NAME:
+                result.setLeft(new Node(numberToken.getTokenType()));
+                break;
+            default:
+                throw new RuntimeException("P: не указан индекс массива");
         }
 
         Token<?> closeBracetToken = lexer.getToken();
         if (closeBracetToken.match(TokenType.BRACET_CLOSE)) {
+
             Token<?> assignToken = lexer.peekToken();
-            if (assignToken.match(TokenType.ASSIGNMENT)) {
-                result.setRight(parseArrayBody());
-            } else if (assignToken.match(TokenType.SEMICOLON)) {
-                return result;
-            } else {
-                throw new RuntimeException("P: Ошибка массива");
+
+            switch (assignToken.getTokenType()){
+                case ASSIGNMENT:
+                    result.setRight(parseArrayBody());
+                    break;
+                case SEMICOLON:
+                case SIGN:
+                    return result;
+                default:
+                    throw new RuntimeException("P: Ошибка массива");
             }
         }
         return result;
@@ -527,7 +536,7 @@ public class Parser {
     }
 
     public Node parseAtom() {
-        Node result;
+        Node result = null;
 
         Token<?> token = lexer.getToken();
         switch (token.getTokenType()) {
@@ -545,19 +554,25 @@ public class Parser {
                 break;
             case NAME:
                 Token<?> nextToken = lexer.peekToken();
-                if (nextToken.match(TokenType.BRACKET_OPEN)) {
+                
+                switch (nextToken.getTokenType()){
+                    case BRACKET_OPEN:
+                        lexer.getToken();
+                        result = new Node(TokenType.CALL_FUNCTION);
+                        result.setLeft(new Node(token));
+                        result.setRight(parseArgList());
 
-                    lexer.getToken();
-                    result = new Node(TokenType.CALL_FUNCTION);
-                    result.setLeft(new Node(token));
-                    result.setRight(parseArgList());
-
-                    nextToken = lexer.getToken();
-                    if (!nextToken.match(TokenType.BRACKET_CLOSE)) {
-                        throw new RuntimeException("P: отсвутствует закрывающая скобка");
-                    }
-                } else {
-                    result = new Node(token);
+                        nextToken = lexer.getToken();
+                        if (!nextToken.match(TokenType.BRACKET_CLOSE)) {
+                            throw new RuntimeException("P: отсвутствует закрывающая скобка");
+                        }
+                        break;
+                    case BRACET_OPEN:
+                        result = parseArray();
+                        break;
+                    default:
+                        result = new Node(token);
+                        break;
                 }
 
                 break;
