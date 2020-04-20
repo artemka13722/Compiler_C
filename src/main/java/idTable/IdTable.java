@@ -15,6 +15,7 @@ public class IdTable {
     private IdentityHashMap<String, String> idTable;
     private Map<Integer, Character> subLevel;
     private Integer level;
+
     public IdTable() {
         this.idTable = new IdentityHashMap<>();
         this.subLevel = new HashMap<>();
@@ -44,11 +45,52 @@ public class IdTable {
         }
     }
 
-    public void body(Node child) {
-        for (Node childFunc : child.getListChild()) {
-            if (childFunc.getTokenType() == TokenType.BODY) {
-                adding(childFunc);
+    public void remSubLevel(Integer level){
+        Character subLvl = this.subLevel.get(level);
+        subLvl = (char) (subLvl.charValue() - 1);
+        this.subLevel.put(level, subLvl);
+    }
+
+    public void tableParams(Node child) {
+        setLevel(getLevel() + 1);
+        addSubLeve(level);
+        for (Node childParam : child.getListChild()) {
+
+            switch (childParam.getTokenType()) {
+                case PARAM:
+                    String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+                    idTable.put(childParam.getTokenValue().toString(), lvl);
+                    break;
             }
+        }
+        remSubLevel(level);
+        setLevel(getLevel() - 1);
+    }
+
+    public void body(Node child) {
+        addSubLeve(level);
+        for (Node childFunc : child.getListChild()) {
+            switch (childFunc.getTokenType()) {
+                case BODY:
+                    adding(childFunc);
+                    break;
+                case NAME:
+                    if (isAnnounced) {
+                        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+                        idTable.put(childFunc.getTokenValue().toString(), lvl);
+                        isAnnounced = false;
+                    }
+                case TYPE:
+                    isAnnounced = true;
+                    break;
+                case PARAMS_LIST:
+                    tableParams(childFunc);
+                    break;
+
+            }
+            /*if (childFunc.getTokenType() == TokenType.BODY) {
+                adding(childFunc);
+            }*/
         }
     }
 

@@ -67,6 +67,7 @@ public class Parser {
 
         result = new Node(new Token<String>(TokenType.FUNCTION, (String) nameToken.getTokenValue()));
         result.setLeft(typeNode);
+        result.setRight(new Node(nameToken));
         result.setRight(parlistNode);
         result.setRight(bodyNode);
 
@@ -144,7 +145,9 @@ public class Parser {
                     result.setLeft(typeNode);
                     result.setRight(new Node(nameToken));
 
-                    Token<?> openBracetToken = lexer.getToken();
+                    Token<?> openBracetToken = lexer.peekToken();
+
+
 /*                    if (openBracetToken.match(TokenType.BRACET_OPEN)) {
                         result.setRight(parseArray());
                     }*/
@@ -154,6 +157,7 @@ public class Parser {
                             break;
                         case ASSIGNMENT:
                             //result.setLeft(new Node(whatEver));
+                            lexer.getToken();
                             result.setRight(new Node(openBracetToken));
                             result.setRight(parseExpr());
                             break;
@@ -340,9 +344,6 @@ public class Parser {
 
             switch (lexer.peekToken().getTokenType()) {
                 case CHAR:
-                    result.setRight(new Node(lexer.peekToken().getTokenType()));
-                    lexer.getToken();
-                    break;
                 case NUMBER:
                     result.setRight(parseExpr());
                     break;
@@ -359,7 +360,7 @@ public class Parser {
     public Node parseArray() {
         Node result = new Node(TokenType.ARRAY);
 
-        //lexer.getToken();
+        lexer.getToken();
         Token<?> numberToken = lexer.getToken();
         if (numberToken.match(TokenType.NUMBER)) {
             result.setLeft(new Node(numberToken.getTokenType()));
@@ -550,6 +551,7 @@ public class Parser {
                     throw new RuntimeException("P: отсутсвует закрывающая скобка");
                 }
             case NUMBER:
+            case CHAR:
                 result = new Node(token);
                 break;
             case NAME:
