@@ -22,8 +22,8 @@ public enum TokenType {
         PROGRAM,
         FUNCTION,
         NAME,
-        BRACET_OPEN, BRACET_CLOSE, // [ ]
-        BRACE_OPEN, BRACE_CLOSE, // фигурные скобки
+        BRACET_OPEN, BRACET_CLOSE,
+        BRACE_OPEN, BRACE_CLOSE,
         PARAMS_LIST,
         PARAM,
         COMMA,
@@ -35,9 +35,9 @@ public enum TokenType {
         TYPE,
         INT, DOUBLE, VOID,
 
-        ASSIGNMENT, // присваивание
-        CONDITION, // условие
-        SIGN, // знак условия
+        ASSIGNMENT,
+        CONDITION,
+        SIGN,
 
         RETURN,
 

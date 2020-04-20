@@ -94,15 +94,12 @@ public class Lexer {
                 break;
 
             default:
-                // цифра или число возможно
                 if (Character.isDigit(curChar)) {
                     currentToken = getNumberFromBuffer(curChar);
                 } else {
-                    // идентификатор возможно или служебное слово
                     if (Character.isAlphabetic(curChar) || curChar == '_') {
                         currentToken = getIdentificatorFromBuffer(curChar);
                     } else {
-                        // возможно это знак условия
                         currentToken = getConditionSignFromBuffer(curChar);
                     }
                 }
@@ -186,14 +183,13 @@ public class Lexer {
             case -1:
                 return new Token<Integer>(TokenType.NUMBER, number, buffer.getRow(), buffer.getCol());
             case 0:
-                break;
+                throw new RuntimeException("L: число не может заканчиваться на точку");
             default:
                 double doubleNumber = number;
                 double tenPower = Math.pow(10, shiftComma);
                 doubleNumber /= tenPower;
                 return new Token<Double>(TokenType.NUMBER, doubleNumber, buffer.getRow(), buffer.getCol());
         }
-        throw new RuntimeException("L: ошибка анлиза чисел");
     }
 
     private Token<?> getIdentificatorFromBuffer(char curChar) {
@@ -276,7 +272,11 @@ public class Lexer {
             case "\"":
                 sign = "";
                 while (peekCharFromBuffer(0) != '"') {
-                    sign += buffer.getChar();
+                    if(peekCharFromBuffer(0) != '\n'){
+                        sign += buffer.getChar();
+                    } else {
+                        throw new RuntimeException("L: незакрытый литерал");
+                    }
                 }
                 buffer.getChar();
                 result = new Token<String>(TokenType.LITERAL, sign, buffer.getRow(), buffer.getCol());
