@@ -144,9 +144,19 @@ public class Parser {
                     result.setLeft(typeNode);
                     result.setRight(new Node(nameToken));
 
-                    Token<?> openBracetToken = lexer.peekToken();
-                    if (openBracetToken.match(TokenType.BRACET_OPEN)) {
+                    Token<?> openBracetToken = lexer.getToken();
+/*                    if (openBracetToken.match(TokenType.BRACET_OPEN)) {
                         result.setRight(parseArray());
+                    }*/
+                    switch (openBracetToken.getTokenType()){
+                        case BRACET_OPEN:
+                            result.setRight(parseArray());
+                            break;
+                        case ASSIGNMENT:
+                            //result.setLeft(new Node(whatEver));
+                            result.setRight(new Node(openBracetToken));
+                            result.setRight(parseExpr());
+                            break;
                     }
                 } else {
                     throw new RuntimeException("P: отсутсвует имя у переменной");
@@ -349,7 +359,7 @@ public class Parser {
     public Node parseArray() {
         Node result = new Node(TokenType.ARRAY);
 
-        lexer.getToken();
+        //lexer.getToken();
         Token<?> numberToken = lexer.getToken();
         if (numberToken.match(TokenType.NUMBER)) {
             result.setLeft(new Node(numberToken.getTokenType()));

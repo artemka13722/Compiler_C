@@ -174,7 +174,7 @@ public class ParserTest {
 
     @Test
     public void testArray() {
-        Buffer buffer = new Buffer(new StringReader("[1] = {1};"));
+        Buffer buffer = new Buffer(new StringReader("1] = {1};"));
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
@@ -192,7 +192,7 @@ public class ParserTest {
 
     @Test
     public void testCharArray() {
-        Buffer buffer = new Buffer(new StringReader("[10] = \"test\";"));
+        Buffer buffer = new Buffer(new StringReader("10] = \"test\";"));
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
@@ -205,7 +205,9 @@ public class ParserTest {
         tree.setLeft(num1);
         tree.setRight(arrayBody);
 
-        Assert.assertEquals(tree, parser.parseArray());
+        Node realTree = parser.parseArray();
+
+        Assert.assertEquals(tree, realTree);
     }
 
     @Test
