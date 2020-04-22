@@ -7,6 +7,8 @@ import parser.Parser;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -36,6 +38,9 @@ public class Main {
 
         System.out.println(idTable.getIdTable());
 
+        List<IdTable> list = new ArrayList<>();
+
+        System.out.println(idTable.getIdTable().get("a"));
         programTree.writeGraph("./tmp/graph1.dot");
     }
 }

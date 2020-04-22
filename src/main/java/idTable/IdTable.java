@@ -3,8 +3,8 @@ package idTable;
 import lexer.TokenType;
 import parser.Node;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,17 +12,17 @@ public class IdTable {
 
     private boolean isAnnounced = false;
 
-    private IdentityHashMap<String, String> idTable;
+    private Map<String, List<Varible>> idTable;
     private Map<Integer, Character> subLevel;
     private Integer level;
 
     public IdTable() {
-        this.idTable = new IdentityHashMap<>();
+        this.idTable = new HashMap<>();
         this.subLevel = new HashMap<>();
         this.level = 0;
     }
 
-    public Map<String, String> getIdTable() {
+    public Map<String, List<Varible>> getIdTable() {
         return idTable;
     }
 
@@ -45,7 +45,7 @@ public class IdTable {
         }
     }
 
-    public void remSubLevel(Integer level){
+    public void remSubLevel(Integer level) {
         Character subLvl = this.subLevel.get(level);
         subLvl = (char) (subLvl.charValue() - 1);
         this.subLevel.put(level, subLvl);
@@ -59,7 +59,18 @@ public class IdTable {
             switch (childParam.getTokenType()) {
                 case PARAM:
                     String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                    idTable.put(childParam.getTokenValue().toString(), lvl);
+
+                    List<Varible> testList = idTable.get(childParam.getTokenValue().toString());
+                    if (testList == null) {
+                        testList = new ArrayList<>();
+                    }
+
+                    testList.add(new Varible(lvl, childParam.getTokenType())); // поменять тип
+                    idTable.put(childParam.getTokenValue().toString(), testList);
+
+
+                    //idTable.put(childParam.getTokenValue().toString(), lvl);
+                    // idTable.put(lvl, childParam.getTokenValue().toString());
                     break;
             }
         }
@@ -75,11 +86,7 @@ public class IdTable {
                     adding(childFunc);
                     break;
                 case NAME:
-                    if (isAnnounced) {
-                        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                        idTable.put(childFunc.getTokenValue().toString(), lvl);
-                        isAnnounced = false;
-                    }
+                    checkName(childFunc);
                 case TYPE:
                     isAnnounced = true;
                     break;
@@ -88,9 +95,31 @@ public class IdTable {
                     break;
 
             }
-            /*if (childFunc.getTokenType() == TokenType.BODY) {
-                adding(childFunc);
-            }*/
+        }
+    }
+
+    private void checkName(Node childFunc) {
+        if (isAnnounced) {
+            String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+
+            List<Varible> testList = idTable.get(childFunc.getTokenValue().toString());
+            if (testList == null) {
+                testList = new ArrayList<>();
+            } else {
+                for (Varible check : testList){
+                    if(check.getValue().equals(lvl)){
+                        System.out.println("ПЭЗДА");
+                        System.exit(0);
+                    }
+                }
+            }
+
+            testList.add(new Varible(lvl, childFunc.getTokenType())); // поменять тип
+            idTable.put(childFunc.getTokenValue().toString(), testList);
+
+            // idTable.put(childFunc.getTokenValue().toString(), lvl);
+            //idTable.put(lvl, childFunc.getTokenValue().toString());
+            isAnnounced = false;
         }
     }
 
@@ -105,11 +134,7 @@ public class IdTable {
                             adding(childCommand);
                             break;
                         case NAME:
-                            if (isAnnounced) {
-                                String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                                idTable.put(childCommand.getTokenValue().toString(), lvl);
-                                isAnnounced = false;
-                            }
+                            checkName(childCommand);
                             break;
                         case TYPE:
                             isAnnounced = true;
