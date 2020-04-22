@@ -1,7 +1,7 @@
 package lexer;
 
 public enum TokenType {
-        CHAR,
+
         LITERAL,
 
         BODY_FINCTION,
@@ -34,6 +34,7 @@ public enum TokenType {
 
         TYPE,
         INT, DOUBLE, VOID,
+        CHAR,
 
         ASSIGNMENT,
         CONDITION,

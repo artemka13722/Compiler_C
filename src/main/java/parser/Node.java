@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node {
+public class Node implements Cloneable{
 
     private Node parent;
 
@@ -21,7 +21,16 @@ public class Node {
         listChild = new ArrayList<>();
     }
 
+    public Node clone() throws CloneNotSupportedException{
+        return (Node) super.clone();
+    }
+
     public Node(TokenType typeValue) {
+        value = new Token<Object>(typeValue);
+        listChild = new ArrayList<>();
+    }
+
+    public void changeNode(TokenType typeValue){
         value = new Token<Object>(typeValue);
         listChild = new ArrayList<>();
     }
@@ -42,24 +51,20 @@ public class Node {
         listChild.add(0, leftChild);
     }
 
-    public void setParent(Node parent) {
-        this.parent = parent;
-    }
-
     public void setRight(Node rightChild) {
         listChild.add(rightChild);
     }
 
     public Node getFirstChildren() {
-        if (listChild.size() > 0) {
-            return listChild.get(0);
-        } else {
-            throw new RuntimeException("P: нода имеет более одного потомка");
-        }
+        return listChild.get(0);
     }
 
     public Node getParent() {
         return parent;
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
     }
 
     public List<Node> getListChild() {

@@ -147,10 +147,6 @@ public class Parser {
 
                     Token<?> openBracetToken = lexer.peekToken();
 
-
-/*                    if (openBracetToken.match(TokenType.BRACET_OPEN)) {
-                        result.setRight(parseArray());
-                    }*/
                     switch (openBracetToken.getTokenType()){
                         case BRACET_OPEN:
                             result.setRight(parseArray());
@@ -562,7 +558,6 @@ public class Parser {
                 }
             case CHAR:
             case NUMBER:
-            case CHAR:
                 result = new Node(token);
                 break;
             case NAME:

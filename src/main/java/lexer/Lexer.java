@@ -289,7 +289,7 @@ public class Lexer {
                 } else {
                     throw new RuntimeException("L: ошибка символов");
                 }
-                result = new Token<String>(TokenType.CHAR, sign, buffer.getRow(), buffer.getCol());
+                result = new Token<Character>(TokenType.CHAR, sign.charAt(0), buffer.getRow(), buffer.getCol());
                 break;
             default:
                 throw new RuntimeException("L: неопределённая лексема");
