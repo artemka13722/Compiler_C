@@ -87,14 +87,12 @@ public class Sema {
                     bodyRec(child);
                     break;
                 case NAME:
-
                     buffer = child.clone();
-
                     String name = childFunc.getTokenValue().toString();
                     String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
                     TokenType type = getTokenType(lvl, name);
                     if (type == null) {
-                        System.out.println("SEMA: переменная не была объявлена");
+                        System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>", childFunc.getValue().getRow(), childFunc.getValue().getCol());
                         System.exit(0);
                     }
 
@@ -108,32 +106,63 @@ public class Sema {
     public void bodyRec(Node body) throws CloneNotSupportedException {
         setLevel(getLevel() + 1);
         addSubLevel(level);
-
         for (Node childBody : body.getListChild()) {
-            if (childBody.getTokenType() == TokenType.COMMAND) {
-                for (Node childCommand : childBody.getListChild()) {
-                    switch (childCommand.getTokenType()) {
-                        case BODY:
-                            bodyRec(childCommand);
-                            break;
-                        case NAME:
-                            buffer = childCommand.clone();
-                            String name = childCommand.getTokenValue().toString();
-                            String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                            TokenType type = getTokenType(lvl, name);
-                            if (type == null) {
-                                System.out.println("SEMA: переменная не была объявлена");
-                                System.exit(0);
-                            }
-                            childCommand.changeNode(type);
-                            childCommand.setLeft(getBuffer());
-                            break;
-                        default:
-                            commandRec(childCommand);
+            switch (childBody.getTokenType()) {
+                case COMMAND:
+                    for (Node childCommand : childBody.getListChild()) {
+                        switch (childCommand.getTokenType()) {
+                            case BODY:
+                                bodyRec(childCommand);
+                                break;
+                            case NAME:
+                                buffer = childCommand.clone();
+                                String name = childCommand.getTokenValue().toString();
+                                String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+                                TokenType type = getTokenType(lvl, name);
+                                if (type == null) {
+                                    System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
+                                            childCommand.getValue().getRow(), childCommand.getValue().getCol());
+                                    System.exit(0);
+                                }
+                                childCommand.changeNode(type);
+                                childCommand.setLeft(getBuffer());
+                                break;
+                            default:
+                                commandRec(childCommand);
+                        }
                     }
-                }
-            } else if (childBody.getTokenType() == TokenType.EMPTY) {
-                setLevel(getLevel() - 1);
+                    break;
+                case CALL_FUNCTION:
+                    System.out.println("FUNCTION");
+                    function(childBody);
+                    break;
+                case EMPTY:
+                    setLevel(getLevel() - 1);
+                    break;
+            }
+        }
+    }
+
+    public void function(Node function) throws CloneNotSupportedException {
+
+        for(Node fun : function.getListChild()){
+            switch (fun.getTokenType()){
+                case NAME:
+                    buffer = fun.clone();
+                    String name = fun.getTokenValue().toString();
+                    String lvl = "0a";
+                    TokenType type = getTokenType(lvl, name);
+                    if (type == null) {
+                        System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
+                                fun.getValue().getRow(), fun.getValue().getCol());
+                        System.exit(0);
+                    }
+                    fun.changeNode(type);
+                    fun.setLeft(getBuffer());
+                    break;
+                case ARG_LIST:
+                    commandRec(fun);
+                    break;
             }
         }
     }
@@ -166,6 +195,20 @@ public class Sema {
                             command.setLeft(getBuffer());
                         }
                         break;
+                    case NAME:
+                        buffer = command.clone();
+                        String name = command.getTokenValue().toString();
+                        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+                        TokenType type = getTokenType(lvl, name);
+                        if (type == null) {
+                            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
+                                    command.getValue().getRow(), command.getValue().getCol());
+                            System.exit(0);
+                        }
+                        command.changeNode(type);
+                        command.setLeft(getBuffer());
+                        break;
+
                 }
             }
         }
@@ -175,6 +218,8 @@ public class Sema {
     public TokenType getTokenType(String lvl, String name) {
 
         List<Varible> varibleList = idTableSema.get(name);
+
+        if (varibleList == null) return null;
 
         for (Varible varible : varibleList) {
             if (varible.getValue().equals(lvl)) {
