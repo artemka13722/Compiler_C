@@ -11,6 +11,14 @@ public class Varible {
         this.tokenType = tokenType;
     }
 
+    @Override
+    public String toString() {
+        return "Varible{" +
+                "value='" + value + '\'' +
+                ", tokenType=" + tokenType +
+                '}';
+    }
+
     public String getValue() {
         return value;
     }

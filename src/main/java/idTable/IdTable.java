@@ -15,6 +15,7 @@ public class IdTable {
     private Map<String, List<Varible>> idTable;
     private Map<Integer, Character> subLevel;
     private Integer level;
+    private TokenType type;
 
     public IdTable() {
         this.idTable = new HashMap<>();
@@ -38,6 +39,8 @@ public class IdTable {
         Character subLvl = this.subLevel.get(level);
 
         if (subLvl == null) {
+            this.subLevel.put(level, 'a');
+        } else if(level == 0) {
             this.subLevel.put(level, 'a');
         } else {
             subLvl = (char) (subLvl.charValue() + 1);
@@ -65,7 +68,7 @@ public class IdTable {
                         testList = new ArrayList<>();
                     }
 
-                    testList.add(new Varible(lvl, childParam.getTokenType())); // поменять тип
+                    testList.add(new Varible(lvl, childParam.getFirstChildren().getFirstChildren().getTokenType())); // поменять тип
                     idTable.put(childParam.getTokenValue().toString(), testList);
 
 
@@ -87,7 +90,9 @@ public class IdTable {
                     break;
                 case NAME:
                     checkName(childFunc);
+                    break;
                 case TYPE:
+                    type = childFunc.getFirstChildren().getTokenType();
                     isAnnounced = true;
                     break;
                 case PARAMS_LIST:
@@ -108,17 +113,14 @@ public class IdTable {
             } else {
                 for (Varible check : testList){
                     if(check.getValue().equals(lvl)){
-                        System.out.println("ПЭЗДА");
+                        System.out.println("ID: повторное объявление переменной на одном уровне");
                         System.exit(0);
                     }
                 }
             }
 
-            testList.add(new Varible(lvl, childFunc.getTokenType())); // поменять тип
+            testList.add(new Varible(lvl, type)); // поменять тип
             idTable.put(childFunc.getTokenValue().toString(), testList);
-
-            // idTable.put(childFunc.getTokenValue().toString(), lvl);
-            //idTable.put(lvl, childFunc.getTokenValue().toString());
             isAnnounced = false;
         }
     }
@@ -137,6 +139,7 @@ public class IdTable {
                             checkName(childCommand);
                             break;
                         case TYPE:
+                            type = childCommand.getFirstChildren().getTokenType();
                             isAnnounced = true;
                             break;
                     }
