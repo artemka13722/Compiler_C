@@ -35,16 +35,16 @@ public class IdTable {
         this.level = level;
     }
 
-    public void addSubLeve(Integer level) {
+    public void addSubLevel(Integer level) {
         Character subLvl = this.subLevel.get(level);
 
         if (subLvl == null) {
-            this.subLevel.put(level, 'a');
+            subLevel.put(level, 'a');
         } else if(level == 0) {
-            this.subLevel.put(level, 'a');
+            subLevel.put(level, 'a');
         } else {
             subLvl = (char) (subLvl.charValue() + 1);
-            this.subLevel.put(level, subLvl);
+            subLevel.put(level, subLvl);
         }
     }
 
@@ -56,7 +56,7 @@ public class IdTable {
 
     public void tableParams(Node child) {
         setLevel(getLevel() + 1);
-        addSubLeve(level);
+        addSubLevel(level);
         for (Node childParam : child.getListChild()) {
 
             switch (childParam.getTokenType()) {
@@ -82,7 +82,7 @@ public class IdTable {
     }
 
     public void body(Node child) {
-        addSubLeve(level);
+        addSubLevel(level);
         for (Node childFunc : child.getListChild()) {
             switch (childFunc.getTokenType()) {
                 case BODY:
@@ -127,7 +127,7 @@ public class IdTable {
 
     private void adding(Node childFunc) {
         setLevel(getLevel() + 1);
-        addSubLeve(level);
+        addSubLevel(level);
         for (Node childBody : childFunc.getListChild()) {
             if (childBody.getTokenType() == TokenType.COMMAND) {
                 for (Node childCommand : childBody.getListChild()) {
