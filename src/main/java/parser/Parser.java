@@ -433,11 +433,13 @@ public class Parser {
 
     public Node parseArgList() {
         Token<?> closeBracketToken = lexer.peekToken();
-        if (closeBracketToken.match(TokenType.BRACKET_CLOSE)) {
-            return new Node(TokenType.EMPTY);
-        }
 
         Node result = new Node(TokenType.ARG_LIST, closeBracketToken.getRow(), closeBracketToken.getCol() - 1);
+
+        if (closeBracketToken.match(TokenType.BRACKET_CLOSE)) {
+            result.setLeft(new Node(TokenType.EMPTY));
+            return result;
+        }
 
         Token<?> commaToken;
         do {
