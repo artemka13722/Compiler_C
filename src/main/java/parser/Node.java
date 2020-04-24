@@ -21,6 +21,11 @@ public class Node implements Cloneable{
         listChild = new ArrayList<>();
     }
 
+    public Node(TokenType typeValue, int row, int col) {
+        value = new Token<Object>(typeValue, row, col);
+        listChild = new ArrayList<>();
+    }
+
     public Node clone() throws CloneNotSupportedException{
         return (Node) super.clone();
     }

@@ -13,6 +13,8 @@ public class Sema {
     private Node buffer;
     private Node tree;
 
+    private Map<String, Integer> functionCount;
+
     private Map<String, List<Varible>> idTableSema;
 
     private Map<Integer, Character> subLevel;
@@ -23,6 +25,7 @@ public class Sema {
         this.idTableSema = idTableSema;
         this.subLevel = new HashMap<>();
         this.level = 0;
+        this.functionCount = new HashMap<>();
     }
 
     public Node getTree() {
@@ -81,6 +84,7 @@ public class Sema {
 
     public void body(Node childFunc) throws CloneNotSupportedException {
         addSubLevel(level);
+        String name = null;
         for (Node child : childFunc.getListChild()) {
             switch (child.getTokenType()) {
                 case BODY:
@@ -88,16 +92,27 @@ public class Sema {
                     break;
                 case NAME:
                     buffer = child.clone();
-                    String name = childFunc.getTokenValue().toString();
+                    name = childFunc.getTokenValue().toString();
                     String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
                     TokenType type = getTokenType(lvl, name);
                     if (type == null) {
                         System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>", childFunc.getValue().getRow(), childFunc.getValue().getCol());
                         System.exit(0);
                     }
-
                     child.changeNode(type);
                     child.setLeft(getBuffer());
+                    functionCount.put(name, 0);
+                    break;
+                case PARAMS_LIST:
+
+                    // счетчик параметров функции
+                    int countParams = 0;
+                    for(Node params : child.getListChild()){
+                        if(params.getTokenType() == TokenType.PARAM){
+                            countParams++;
+                        }
+                    }
+                    functionCount.put(name, countParams);
                     break;
             }
         }
@@ -144,12 +159,12 @@ public class Sema {
     }
 
     public void function(Node function) throws CloneNotSupportedException {
-
+        String name = null;
         for(Node fun : function.getListChild()){
             switch (fun.getTokenType()){
                 case NAME:
                     buffer = fun.clone();
-                    String name = fun.getTokenValue().toString();
+                    name = fun.getTokenValue().toString();
                     String lvl = "0a";
                     TokenType type = getTokenType(lvl, name);
                     if (type == null) {
@@ -161,6 +176,24 @@ public class Sema {
                     fun.setLeft(getBuffer());
                     break;
                 case ARG_LIST:
+                    int countArgs = 0;
+                    for(Node args : fun.getListChild()){
+                        countArgs++;
+                    }
+                    int count = 0;
+                    try {
+                        count = functionCount.get(name);
+                    } catch (NullPointerException e){
+                        System.out.printf((char) 27 + "[31m SEMA: функция должна быть описана выше main LOC<%d:%d>",
+                                fun.getValue().getRow(), fun.getValue().getCol());
+                        System.exit(0);
+                    }
+                    if(count != countArgs){
+                        System.out.printf((char) 27 + "[31m SEMA: разное количество принимаемых и/или отправляемых аргументов LOC<%d:%d>",
+                                fun.getValue().getRow(), fun.getValue().getCol());
+                        System.exit(0);
+                    }
+
                     commandRec(fun);
                     break;
             }
@@ -169,9 +202,7 @@ public class Sema {
 
     // TODO: 23.04.2020 попробовать перевести перебор типов на switch
     public void commandRec(Node command) throws CloneNotSupportedException {
-
         if (command != null) {
-
             if (command.getListChild().size() > 0) {
                 for (Node recCommand : command.getListChild()) {
                     commandRec(recCommand);
@@ -227,12 +258,31 @@ public class Sema {
             }
         }
 
-        for (int i = 0; i < varibleList.size(); i++) {
-            if ((varibleList.get(i).getValue().compareTo(lvl)) > 0) {
-                return varibleList.get(i - 1).getTokenType();
+        boolean checkLvl = false;
+        Character nameLvl = lvl.charAt(1);
+        for(Varible varible : varibleList) {
+            if (varible.getValue().charAt(1) == nameLvl) {
+                checkLvl = true;
             }
         }
-        return null;
+        if(checkLvl == false){
+            return null;
+        }
+
+        int[] mass = new int[varibleList.size()];
+        for (int i = 0; i < varibleList.size(); i++) {
+            mass[i] = varibleList.get(i).getValue().compareTo(lvl);
+        }
+
+        int indexOfMax = 0;
+        for (int i = 1; i < mass.length; i++) {
+            if (mass[i] > mass[indexOfMax]) {
+                indexOfMax = i;
+            }
+        }
+        return varibleList.get(indexOfMax).getTokenType();
+
+        //return null;
     }
 
 }

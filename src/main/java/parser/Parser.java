@@ -437,7 +437,7 @@ public class Parser {
             return new Node(TokenType.EMPTY);
         }
 
-        Node result = new Node(TokenType.ARG_LIST);
+        Node result = new Node(TokenType.ARG_LIST, closeBracketToken.getRow(), closeBracketToken.getCol() - 1);
 
         Token<?> commaToken;
         do {
