@@ -10,6 +10,9 @@ import java.util.Map;
 
 public class Sema {
 
+    // придумать что нибудь по лучше
+    private String nameFunction = null;
+
     private Node buffer;
     private Node tree;
 
@@ -56,14 +59,14 @@ public class Sema {
         } else if (level == 0) {
             subLevel.put(level, 'a');
         } else {
-            subLvl = (char) (subLvl.charValue() + 1);
+            subLvl = (char) (subLvl + 1);
             subLevel.put(level, subLvl);
         }
     }
 
     public void remSubLevel(Integer level) {
         Character subLvl = this.subLevel.get(level);
-        subLvl = (char) (subLvl.charValue() - 1);
+        subLvl = (char) (subLvl - 1);
         this.subLevel.put(level, subLvl);
     }
 
@@ -101,14 +104,15 @@ public class Sema {
                     }
                     child.changeNode(type);
                     child.setLeft(getBuffer());
+                    nameFunction = name;
                     functionCount.put(name, 0);
                     break;
                 case PARAMS_LIST:
 
                     // счетчик параметров функции
                     int countParams = 0;
-                    for(Node params : child.getListChild()){
-                        if(params.getTokenType() == TokenType.PARAM){
+                    for (Node params : child.getListChild()) {
+                        if (params.getTokenType() == TokenType.PARAM) {
                             countParams++;
                         }
                     }
@@ -121,6 +125,8 @@ public class Sema {
     public void bodyRec(Node body) throws CloneNotSupportedException {
         setLevel(getLevel() + 1);
         addSubLevel(level);
+        String name;
+        boolean returned = false;
         for (Node childBody : body.getListChild()) {
             switch (childBody.getTokenType()) {
                 case COMMAND:
@@ -131,7 +137,7 @@ public class Sema {
                                 break;
                             case NAME:
                                 buffer = childCommand.clone();
-                                String name = childCommand.getTokenValue().toString();
+                                name = childCommand.getTokenValue().toString();
                                 String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
                                 TokenType type = getTokenType(lvl, name);
                                 if (type == null) {
@@ -139,8 +145,23 @@ public class Sema {
                                             childCommand.getValue().getRow(), childCommand.getValue().getCol());
                                     System.exit(0);
                                 }
+
+                                // проверка типов
+                                if(returned){
+                                    TokenType typeFunction = getTokenType("0a", nameFunction);
+                                    System.out.println(typeFunction);
+                                    if(typeFunction == TokenType.VOID && type != typeFunction){
+                                        System.out.printf((char) 27 + "[31m SEMA: void не может возвращать значения LOC<%d:%d>",
+                                                childCommand.getValue().getRow(), childCommand.getValue().getCol());
+                                        System.exit(0);
+                                    }
+                                }
+
                                 childCommand.changeNode(type);
                                 childCommand.setLeft(getBuffer());
+                                break;
+                            case RETURN:
+                                returned = true;
                                 break;
                             default:
                                 commandRec(childCommand);
@@ -160,8 +181,8 @@ public class Sema {
 
     public void function(Node function) throws CloneNotSupportedException {
         String name = null;
-        for(Node fun : function.getListChild()){
-            switch (fun.getTokenType()){
+        for (Node fun : function.getListChild()) {
+            switch (fun.getTokenType()) {
                 case NAME:
                     buffer = fun.clone();
                     name = fun.getTokenValue().toString();
@@ -177,18 +198,21 @@ public class Sema {
                     break;
                 case ARG_LIST:
                     int countArgs = 0;
-                    for(Node args : fun.getListChild()){
+                    for (Node args : fun.getListChild()) {
+                        if (args.getTokenType() == TokenType.EMPTY) {
+                            break;
+                        }
                         countArgs++;
                     }
                     int count = 0;
                     try {
                         count = functionCount.get(name);
-                    } catch (NullPointerException e){
+                    } catch (NullPointerException e) {
                         System.out.printf((char) 27 + "[31m SEMA: функция должна быть описана выше main LOC<%d:%d>",
                                 fun.getValue().getRow(), fun.getValue().getCol());
                         System.exit(0);
                     }
-                    if(count != countArgs){
+                    if (count != countArgs) {
                         System.out.printf((char) 27 + "[31m SEMA: разное количество принимаемых и/или отправляемых аргументов LOC<%d:%d>",
                                 fun.getValue().getRow(), fun.getValue().getCol());
                         System.exit(0);
@@ -259,13 +283,14 @@ public class Sema {
         }
 
         boolean checkLvl = false;
-        Character nameLvl = lvl.charAt(1);
-        for(Varible varible : varibleList) {
+        char nameLvl = lvl.charAt(1);
+        for (Varible varible : varibleList) {
             if (varible.getValue().charAt(1) == nameLvl) {
                 checkLvl = true;
+                break;
             }
         }
-        if(checkLvl == false){
+        if (!checkLvl) {
             return null;
         }
 
