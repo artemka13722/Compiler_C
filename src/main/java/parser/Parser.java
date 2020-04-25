@@ -29,7 +29,7 @@ public class Parser {
     }
 
     public Node parseFunction() {
-        Node result = null;
+        Node result;
         if (lexer.peekToken().match(TokenType.END)) {
             return new Node(TokenType.EMPTY);
         }
@@ -319,7 +319,7 @@ public class Parser {
     }
 
     private Node parseArrayAssigment() {
-        Node result = new Node(TokenType.ARRAY);
+        Node result = new Node(TokenType.ARRAYASSIGMENT);
 
         Token<?> numberToken = lexer.getToken();
         if (numberToken.match(TokenType.NUMBER)) {
@@ -362,7 +362,7 @@ public class Parser {
         switch (numberToken.getTokenType()){
             case NUMBER:
             case NAME:
-                result.setLeft(new Node(numberToken.getTokenType()));
+                result.setLeft(new Node(numberToken));
                 break;
             default:
                 throw new RuntimeException("P: не указан индекс массива");
@@ -400,7 +400,7 @@ public class Parser {
 
                     Token<?> numberToken = lexer.getToken();
                     if (numberToken.match(TokenType.NUMBER)) {
-                        result.setRight(new Node(TokenType.NUMBER));
+                        result.setRight(new Node(numberToken));
                     }
                     Token<?> commaToken = lexer.getToken();
                     if (commaToken.match(TokenType.BRACE_CLOSE)) {
@@ -546,7 +546,7 @@ public class Parser {
     }
 
     public Node parseAtom() {
-        Node result = null;
+        Node result;
 
         Token<?> token = lexer.getToken();
         switch (token.getTokenType()) {

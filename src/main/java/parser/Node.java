@@ -52,6 +52,10 @@ public class Node implements Cloneable{
         return value.getTokenValue();
     }
 
+    public void setValue(Token<?> value) {
+        this.value = value;
+    }
+
     public void setLeft(Node leftChild) {
         listChild.add(0, leftChild);
     }
@@ -102,13 +106,8 @@ public class Node implements Cloneable{
             }
         }
         if (value == null) {
-            if (other.value != null) {
-                return false;
-            }
-        } else if (!value.equals(other.value)) {
-            return false;
-        }
-        return true;
+            return other.value == null;
+        } else return value.equals(other.value);
     }
 
     public void writeGraph(String path) {

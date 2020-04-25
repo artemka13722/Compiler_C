@@ -11,6 +11,7 @@ public enum TokenType {
 
         ARRAY,
         ARRAY_BODY,
+        ARRAYASSIGMENT,
         NUMBER,
         PLUS, MINUS,
         MULTIPLICATION, DIVISION,
