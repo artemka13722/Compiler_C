@@ -37,12 +37,8 @@ public class Main {
         //idTable.getAstParent(programTree);
         idTable.formATablel(programTree);
 
-        System.out.println(idTable.getIdTable());
-
         Sema sema = new Sema(programTree, idTable.getIdTable());
         sema.analyze();
         sema.getTree().writeGraph("./tmp/graph2.dot");
-
-        System.out.println(idTable.getIdTable().get("a"));
     }
 }

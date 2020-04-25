@@ -2,11 +2,11 @@ package idTable;
 
 import lexer.TokenType;
 
-public class Varible {
+public class Variable {
     String value;
     TokenType tokenType;
 
-    public Varible(String value, TokenType tokenType) {
+    public Variable(String value, TokenType tokenType) {
         this.value = value;
         this.tokenType = tokenType;
     }

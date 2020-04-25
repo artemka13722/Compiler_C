@@ -121,8 +121,7 @@ public class Parser {
             }
             command = parseCommand();
             result.setRight(command);
-        } while (!command.getValue().match(TokenType.EMPTY));
-
+        } while (!command.getFirstChildren().getValue().match(TokenType.EMPTY));
         return result;
     }
 
@@ -132,7 +131,6 @@ public class Parser {
         Token<?> whatEver = lexer.peekToken();
         switch (whatEver.getTokenType()) {
             case BRACE_CLOSE:
-                result = new Node(TokenType.EMPTY);
                 break;
             case INT:
             case DOUBLE:
@@ -291,6 +289,7 @@ public class Parser {
             default:
                 throw new RuntimeException("P: неизвестная команда или не закрыто тело функции");
         }
+        result.setRight(new Node(TokenType.EMPTY));
         return result;
     }
 

@@ -12,7 +12,7 @@ public class IdTable {
 
     private boolean isAnnounced = false;
 
-    private Map<String, List<Varible>> idTable;
+    private Map<String, List<Variable>> idTable;
     private Map<Integer, Character> subLevel;
     private Integer level;
     private TokenType type;
@@ -23,7 +23,7 @@ public class IdTable {
         this.level = 0;
     }
 
-    public Map<String, List<Varible>> getIdTable() {
+    public Map<String, List<Variable>> getIdTable() {
         return idTable;
     }
 
@@ -50,7 +50,7 @@ public class IdTable {
 
     public void remSubLevel(Integer level) {
         Character subLvl = this.subLevel.get(level);
-        subLvl = (char) (subLvl.charValue() - 1);
+        subLvl = (char) (subLvl - 1);
         this.subLevel.put(level, subLvl);
     }
 
@@ -63,17 +63,13 @@ public class IdTable {
                 case PARAM:
                     String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
 
-                    List<Varible> testList = idTable.get(childParam.getTokenValue().toString());
+                    List<Variable> testList = idTable.get(childParam.getTokenValue().toString());
                     if (testList == null) {
                         testList = new ArrayList<>();
                     }
 
-                    testList.add(new Varible(lvl, childParam.getFirstChildren().getFirstChildren().getTokenType())); // поменять тип
+                    testList.add(new Variable(lvl, childParam.getFirstChildren().getFirstChildren().getTokenType())); // поменять тип
                     idTable.put(childParam.getTokenValue().toString(), testList);
-
-
-                    //idTable.put(childParam.getTokenValue().toString(), lvl);
-                    // idTable.put(lvl, childParam.getTokenValue().toString());
                     break;
             }
         }
@@ -107,19 +103,20 @@ public class IdTable {
         if (isAnnounced) {
             String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
 
-            List<Varible> testList = idTable.get(childFunc.getTokenValue().toString());
+            List<Variable> testList = idTable.get(childFunc.getTokenValue().toString());
             if (testList == null) {
                 testList = new ArrayList<>();
             } else {
-                for (Varible check : testList){
+                for (Variable check : testList){
                     if(check.getValue().equals(lvl)){
-                        System.out.println("ID: повторное объявление переменной на одном уровне");
+                        System.out.printf((char) 27 + "[31m ID: повторное объявление переменной на одном уровне LOC<%d:%d>",
+                                childFunc.getValue().getRow(), childFunc.getValue().getCol());
                         System.exit(0);
                     }
                 }
             }
 
-            testList.add(new Varible(lvl, type)); // поменять тип
+            testList.add(new Variable(lvl, type)); // поменять тип
             idTable.put(childFunc.getTokenValue().toString(), testList);
             isAnnounced = false;
         }
@@ -166,9 +163,8 @@ public class IdTable {
 
     public void getAstParent(Node tree) {
         if (tree.getListChild().size() != 0) {
-            Node parent = tree;
             for (Node children : tree.getListChild()) {
-                children.setParent(parent);
+                children.setParent(tree);
                 getAstParent(children);
             }
         }
