@@ -174,6 +174,7 @@ public class Parser {
                         result.setRight(parseExpr());
                         break;
                     case BRACET_OPEN:
+                        result.setLeft(new Node(whatEver));
                         result.setRight(parseArrayAssigment());
                         break;
                     case BRACKET_OPEN:
@@ -322,10 +323,14 @@ public class Parser {
         Node result = new Node(TokenType.ARRAYASSIGMENT);
 
         Token<?> numberToken = lexer.getToken();
-        if (numberToken.match(TokenType.NUMBER)) {
-            result.setRight(new Node(numberToken));
-        } else {
-            throw new RuntimeException("P: не указан индекс массива");
+
+        switch (numberToken.getTokenType()){
+            case NUMBER:
+            case NAME:
+                result.setRight(new Node(numberToken));
+                break;
+            default:
+                throw new RuntimeException("P: не указан индекс массива");
         }
 
         Token<?> bracketClose = lexer.getToken();
@@ -341,6 +346,7 @@ public class Parser {
             switch (lexer.peekToken().getTokenType()) {
                 case CHAR:
                 case NUMBER:
+                case NAME:
                     result.setRight(parseExpr());
                     break;
                 default:
