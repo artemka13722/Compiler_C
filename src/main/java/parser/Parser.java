@@ -312,7 +312,7 @@ public class Parser {
 
                 Token<?> tokenName = lexer.getToken();
                 if (tokenName.match(TokenType.NAME)) {
-                    result.setRight(new Node(TokenType.NAME));
+                    result.setRight(new Node(tokenName));
                 }
             }
         }
