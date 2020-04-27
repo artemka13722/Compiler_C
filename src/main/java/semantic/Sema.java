@@ -296,9 +296,7 @@ public class Sema {
     public void arrayAssigment(Node arrayAssigment) throws CloneNotSupportedException {
 
         for (Node array : arrayAssigment.getListChild()) {
-
             switch (array.getTokenType()) {
-
                 case NUMBER:
                 case NAME:
                     if (assigment) {
@@ -390,87 +388,23 @@ public class Sema {
                     case NUMBER:
                         buffer = command.clone();
                         if (assigment) {
-                            String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                            TokenType type = getTokenType(lvl, nameVariable);
-                            String value = command.getTokenValue().toString();
-
-                            switch (type) {
-                                case CHAR:
-                                    System.out.println((char) 27 + "[31m SEMA: к char присваивать можно только char");
-                                    System.exit(0);
-                                    break;
-                                case INT:
-                                    if (!(command.getTokenValue() instanceof Integer)) {
-
-                                        value = convertType(TokenType.DOUBLE, TokenType.INT, value);
-                                        Token<?> newValue = new Token<>(TokenType.NUMBER, Integer.valueOf(value));
-                                        buffer.setValue(newValue);
-
-                                    }
-                                    command.changeNode(TokenType.INT);
-                                    command.setLeft(getBuffer());
-
-                                    break;
-                                case DOUBLE:
-                                    if (!(command.getTokenValue() instanceof Double)) {
-                                        value = convertType(TokenType.INT, TokenType.DOUBLE, value);
-                                        Token<?> newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
-                                        buffer.setValue(newValue);
-                                    }
-                                    command.changeNode(TokenType.DOUBLE);
-                                    command.setLeft(getBuffer());
-                            }
+                            convertNumber(command);
                         } else {
-                            if (command.getTokenValue() instanceof Integer) {
-                                command.changeNode(TokenType.INT);
-                                command.setLeft(getBuffer());
-                            }
-                            if (command.getTokenValue() instanceof Double) {
-                                command.changeNode(TokenType.DOUBLE);
-                                command.setLeft(getBuffer());
-                            }
+                            checkTypeNumber(command);
                         }
                         break;
                     case CHAR:
                         buffer = command.clone();
-
                         if (assigment) {
-                            String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                            TokenType type = getTokenType(lvl, nameVariable);
-                            String value = command.getTokenValue().toString();
-                            Token<?> newValue;
-
-                            switch (type) {
-                                case CHAR:
-                                    if (command.getTokenValue() instanceof Character) {
-                                        command.changeNode(TokenType.CHAR);
-                                        command.setLeft(getBuffer());
-                                    }
-                                    break;
-                                case INT:
-                                    value = convertType(TokenType.CHAR, TokenType.INT, value);
-                                    newValue = new Token<Integer>(TokenType.NUMBER, Integer.valueOf(value));
-                                    buffer.setValue(newValue);
-                                    command.changeNode(TokenType.INT);
-                                    command.setLeft(getBuffer());
-                                    break;
-                                case DOUBLE:
-                                    value = convertType(TokenType.CHAR, TokenType.DOUBLE, value);
-                                    newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
-                                    buffer.setValue(newValue);
-                                    command.changeNode(TokenType.DOUBLE);
-                                    command.setLeft(getBuffer());
-                                    break;
-                            }
+                            convertChar(command);
                         } else {
-                            if (command.getTokenValue() instanceof Character) {
-                                command.changeNode(TokenType.CHAR);
-                                command.setLeft(getBuffer());
-                            }
+                            checkTypeChar(command);
                         }
 
                         break;
                     case NAME:
+                        // добавить приведение типов переменных
+
                         buffer = command.clone();
                         String name = command.getTokenValue().toString();
                         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
@@ -490,6 +424,87 @@ public class Sema {
             }
         }
 
+    }
+
+    public void checkTypeChar(Node command){
+        if (command.getTokenValue() instanceof Character) {
+            command.changeNode(TokenType.CHAR);
+            command.setLeft(getBuffer());
+        }
+    }
+
+    public void convertChar(Node command){
+        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+        TokenType type = getTokenType(lvl, nameVariable);
+        String value = command.getTokenValue().toString();
+        Token<?> newValue;
+
+        switch (type) {
+            case CHAR:
+                if (command.getTokenValue() instanceof Character) {
+                    command.changeNode(TokenType.CHAR);
+                    command.setLeft(getBuffer());
+                }
+                break;
+            case INT:
+                value = convertType(TokenType.CHAR, TokenType.INT, value);
+                newValue = new Token<Integer>(TokenType.NUMBER, Integer.valueOf(value));
+                buffer.setValue(newValue);
+                command.changeNode(TokenType.INT);
+                command.setLeft(getBuffer());
+                break;
+            case DOUBLE:
+                value = convertType(TokenType.CHAR, TokenType.DOUBLE, value);
+                newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
+                buffer.setValue(newValue);
+                command.changeNode(TokenType.DOUBLE);
+                command.setLeft(getBuffer());
+                break;
+        }
+    }
+
+    public void checkTypeNumber(Node command){
+        if (command.getTokenValue() instanceof Integer) {
+            command.changeNode(TokenType.INT);
+            command.setLeft(getBuffer());
+        }
+        if (command.getTokenValue() instanceof Double) {
+            command.changeNode(TokenType.DOUBLE);
+            command.setLeft(getBuffer());
+        }
+    }
+
+    public void convertNumber(Node command) {
+        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+        TokenType type = getTokenType(lvl, nameVariable);
+        String value = command.getTokenValue().toString();
+
+        switch (type) {
+            case CHAR:
+                System.out.println((char) 27 + "[31m SEMA: к char присваивать можно только char");
+                System.exit(0);
+                break;
+            case INT:
+                if (!(command.getTokenValue() instanceof Integer)) {
+
+                    value = convertType(TokenType.DOUBLE, TokenType.INT, value);
+                    Token<?> newValue = new Token<>(TokenType.NUMBER, Integer.valueOf(value));
+                    buffer.setValue(newValue);
+
+                }
+                command.changeNode(TokenType.INT);
+                command.setLeft(getBuffer());
+
+                break;
+            case DOUBLE:
+                if (!(command.getTokenValue() instanceof Double)) {
+                    value = convertType(TokenType.INT, TokenType.DOUBLE, value);
+                    Token<?> newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
+                    buffer.setValue(newValue);
+                }
+                command.changeNode(TokenType.DOUBLE);
+                command.setLeft(getBuffer());
+        }
     }
 
     public String convertType(TokenType in, TokenType out, String value) {
