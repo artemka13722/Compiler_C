@@ -85,8 +85,8 @@ public class Sema {
         this.subLevel.put(level, subLvl);
     }
 
+    // проверить что тут происходит
     public void analyze() throws CloneNotSupportedException {
-
         List<Node> listChild;
         if (tree != null) {
             listChild = tree.getListChild();
@@ -94,7 +94,6 @@ public class Sema {
                 if (child.getTokenType() == TokenType.FUNCTION) {
                     body(child);
                 }
-
             }
         }
     }
@@ -108,109 +107,129 @@ public class Sema {
                     bodyRec(child);
                     break;
                 case NAME:
-                    buffer = child.clone();
-                    name = childFunc.getTokenValue().toString();
-                    String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                    TokenType type = getTokenType(lvl, name);
-                    if (type == null) {
-                        System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>", childFunc.getValue().getRow(), childFunc.getValue().getCol());
-                        System.exit(0);
-                    }
-                    child.changeNode(type);
-                    child.setLeft(getBuffer());
-                    nameFunction = name;
-                    functionCount.put(name, 0);
+                    name = bodyName(child, childFunc);
                     break;
                 case PARAMS_LIST:
-
-                    // счетчик параметров функции
-                    int countParams = 0;
-                    for (Node params : child.getListChild()) {
-                        if (params.getTokenType() == TokenType.PARAM) {
-                            countParams++;
-                        }
-                    }
-                    functionCount.put(name, countParams);
+                    paramsCounter(child, name);
                     break;
             }
         }
     }
 
+    public void paramsCounter(Node child, String name){
+        int countParams = 0;
+        for (Node params : child.getListChild()) {
+            if (params.getTokenType() == TokenType.PARAM) {
+                countParams++;
+            }
+        }
+        functionCount.put(name, countParams);
+    }
+
+    public String bodyName(Node child, Node childFunc) throws CloneNotSupportedException {
+        buffer = child.clone();
+        String name = childFunc.getTokenValue().toString();
+        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+        TokenType type = getTokenType(lvl, name);
+        if (type == null) {
+            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>", childFunc.getValue().getRow(), childFunc.getValue().getCol());
+            System.exit(0);
+        }
+        child.changeNode(type);
+        child.setLeft(getBuffer());
+        nameFunction = name;
+        functionCount.put(name, 0);
+        return name;
+    }
+
     public void bodyRec(Node body) throws CloneNotSupportedException {
         setLevel(getLevel() + 1);
         addSubLevel(level);
-        boolean returned = false;
         for (Node childBody : body.getListChild()) {
-            switch (childBody.getTokenType()) {
-                case COMMAND:
-                    for (Node childCommand : childBody.getListChild()) {
-                        switch (childCommand.getTokenType()) {
-                            case BODY:
-                                bodyRec(childCommand);
-                                break;
-                            case NAME:
-                                //приведение типов
-                                buffer = childCommand.clone();
-                                String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                                if (assigment) {
-
-                                    TokenType type1 = getTokenType(lvl, nameVariable);
-                                    typeCheck(type1, childCommand);
-
-                                    nameVariable = childCommand.getTokenValue().toString();
-                                    TokenType type2 = getTokenType(lvl, nameVariable);
-
-                                    typeCheck(type2, childCommand);
-
-                                    TokenType type = typeCheckType(type1, type2);
-                                    childCommand.changeNode(type);
-                                } else {
-                                    nameVariable = childCommand.getTokenValue().toString();
-                                    TokenType type = getTokenType(lvl, nameVariable);
-                                    typeCheck(type, childCommand);
-
-                                    // проверка типов
-                                    if (returned) {
-                                        TokenType typeFunction = getTokenType("0a", nameFunction);
-                                        if (typeFunction == TokenType.VOID || type != typeFunction) {
-                                            System.out.printf((char) 27 + "[31m SEMA: void не может возвращать значения " +
-                                                            "или возвращаемый тип не равен типу функции LOC<%d:%d>",
-                                                    childCommand.getValue().getRow(), childCommand.getValue().getCol());
-                                            System.exit(0);
-                                        }
-                                    }
-                                    childCommand.changeNode(type);
-                                }
-                                childCommand.setLeft(getBuffer());
-                                break;
-                            case RETURN:
-                                returned = true;
-                                break;
-                            case ASSIGNMENT:
-                                assigment = true;
-                                break;
-                            case ARRAY:
-                                array(childCommand);
-                                break;
-                            case ARRAYASSIGMENT:
-                                arrayAssigment(childCommand);
-                                break;
-                            /*case CONDITION:
-                                condition(childCommand);
-                                break;*/
-                            default:
-                                commandRec(childCommand);
-                        }
-                    }
-                    break;
-                case CALL_FUNCTION:
-                    function(childBody);
-                    break;
-                case EMPTY:
-                    setLevel(getLevel() - 1);
-                    break;
-            }
+            bodyCommand(childBody);
         }
+    }
+
+    public void bodyCommand(Node childBody) throws CloneNotSupportedException {
+        switch (childBody.getTokenType()) {
+            case COMMAND:
+                for (Node childCommand : childBody.getListChild()) {
+                    commands(childCommand);
+                }
+                break;
+            case CALL_FUNCTION:
+                function(childBody);
+                break;
+            case EMPTY:
+                setLevel(getLevel() - 1);
+                break;
+        }
+    }
+
+    // проверить правильность returned
+    public void commands(Node childCommand) throws CloneNotSupportedException {
+        boolean returned = false;
+        switch (childCommand.getTokenType()) {
+            case BODY:
+                bodyRec(childCommand);
+                break;
+            case NAME:
+                commandName(childCommand, returned);
+                break;
+            case RETURN:
+                returned = true;
+                break;
+            case ASSIGNMENT:
+                assigment = true;
+                break;
+            case ARRAY:
+                array(childCommand);
+                break;
+            case ARRAYASSIGMENT:
+                arrayAssigment(childCommand);
+                break;
+                /*case CONDITION:
+                condition(childCommand);
+                break;*/
+            default:
+                commandRec(childCommand);
+        }
+    }
+
+    public void commandName(Node childCommand, boolean returned) throws CloneNotSupportedException {
+        //приведение типов
+        buffer = childCommand.clone();
+        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+        if (assigment) {
+
+            TokenType type1 = getTokenType(lvl, nameVariable);
+            typeCheck(type1, childCommand);
+
+            nameVariable = childCommand.getTokenValue().toString();
+            TokenType type2 = getTokenType(lvl, nameVariable);
+
+            typeCheck(type2, childCommand);
+
+            TokenType type = typeCheckType(type1, type2);
+            childCommand.changeNode(type);
+        } else {
+            nameVariable = childCommand.getTokenValue().toString();
+            TokenType type = getTokenType(lvl, nameVariable);
+            typeCheck(type, childCommand);
+
+            // проверка типов
+            if (returned) {
+                TokenType typeFunction = getTokenType("0a", nameFunction);
+                if (typeFunction == TokenType.VOID || type != typeFunction) {
+                    System.out.printf((char) 27 + "[31m SEMA: void не может возвращать значения " +
+                                    "или возвращаемый тип не равен типу функции LOC<%d:%d>",
+                            childCommand.getValue().getRow(), childCommand.getValue().getCol());
+                    System.exit(0);
+                }
+            }
+            childCommand.changeNode(type);
+        }
+        childCommand.setLeft(getBuffer());
     }
 
     public TokenType typeCheckType(TokenType in, TokenType out) {
@@ -222,7 +241,7 @@ public class Sema {
                 out = convertInt(out);
                 break;
             case DOUBLE:
-               out = convertDouble(out);
+                out = convertDouble(out);
                 break;
             case CHAR:
                 out = convertChar(out);
@@ -230,7 +249,7 @@ public class Sema {
         return out;
     }
 
-    public TokenType convertInt(TokenType out){
+    public TokenType convertInt(TokenType out) {
         switch (out) {
             case CHAR:
                 out = TokenType.INTTOCHAR;
@@ -242,7 +261,7 @@ public class Sema {
         return out;
     }
 
-    public TokenType convertDouble(TokenType out){
+    public TokenType convertDouble(TokenType out) {
         switch (out) {
             case INT:
                 out = TokenType.DOUBLETOINT;
@@ -254,7 +273,7 @@ public class Sema {
         return out;
     }
 
-    public TokenType convertChar(TokenType out){
+    public TokenType convertChar(TokenType out) {
         switch (out) {
             case INT:
                 out = TokenType.CHARTOINT;
@@ -274,7 +293,6 @@ public class Sema {
         }
     }
 
-
     // проверка на double не совершенна
     public void array(Node array) throws CloneNotSupportedException {
         String value = array.getFirstChildren().getTokenValue().toString();
@@ -288,7 +306,6 @@ public class Sema {
             System.out.print((char) 27 + "[31m SEMA: индекс массива должен быть целочисленным");
             System.exit(0);
         }
-
         commandRec(array);
     }
 
@@ -299,25 +316,8 @@ public class Sema {
             switch (array.getTokenType()) {
                 case NUMBER:
                 case NAME:
-                    if (assigment) {
-                        commandRec(array);
-                    } else {
-                        int value = 0;
-                        try {
-                            value = (Integer) array.getTokenValue();
-                        } catch (ClassCastException e) {
-                            //System.out.println("SEMA: переменная ");
-                        }
-
-                        int count = Integer.parseInt(arrays.get(nameVariable));
-                        if (value > count) {
-                            System.out.printf((char) 27 + "[31m SEMA: выход за пределы массива LOC<%d:%d>",
-                                    array.getValue().getRow(), array.getValue().getCol());
-                            System.exit(0);
-                        }
-                    }
+                    nameArrayAssigment(array);
                     break;
-
                 case ASSIGNMENT:
                     assigment = true;
                     break;
@@ -326,9 +326,27 @@ public class Sema {
                         commandRec(array);
                     }
             }
-
         }
+    }
 
+    public void nameArrayAssigment(Node array) throws CloneNotSupportedException {
+        if (assigment) {
+            commandRec(array);
+        } else {
+            int value = 0;
+            try {
+                value = (Integer) array.getTokenValue();
+            } catch (ClassCastException e) {
+                //System.out.println("SEMA: переменная ");
+            }
+
+            int count = Integer.parseInt(arrays.get(nameVariable));
+            if (value > count) {
+                System.out.printf((char) 27 + "[31m SEMA: выход за пределы массива LOC<%d:%d>",
+                        array.getValue().getRow(), array.getValue().getCol());
+                System.exit(0);
+            }
+        }
     }
 
     public void function(Node function) throws CloneNotSupportedException {
@@ -434,14 +452,14 @@ public class Sema {
 
     }
 
-    public void checkTypeChar(Node command){
+    public void checkTypeChar(Node command) {
         if (command.getTokenValue() instanceof Character) {
             command.changeNode(TokenType.CHAR);
             command.setLeft(getBuffer());
         }
     }
 
-    public void convertChar(Node command){
+    public void convertChar(Node command) {
         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
         TokenType type = getTokenType(lvl, nameVariable);
         String value = command.getTokenValue().toString();
@@ -471,7 +489,7 @@ public class Sema {
         }
     }
 
-    public void checkTypeNumber(Node command){
+    public void checkTypeNumber(Node command) {
         if (command.getTokenValue() instanceof Integer) {
             command.changeNode(TokenType.INT);
             command.setLeft(getBuffer());
@@ -494,15 +512,12 @@ public class Sema {
                 break;
             case INT:
                 if (!(command.getTokenValue() instanceof Integer)) {
-
                     value = convertTypeValue(TokenType.DOUBLE, TokenType.INT, value);
                     Token<?> newValue = new Token<>(TokenType.NUMBER, Integer.valueOf(value));
                     buffer.setValue(newValue);
-
                 }
                 command.changeNode(TokenType.INT);
                 command.setLeft(getBuffer());
-
                 break;
             case DOUBLE:
                 if (!(command.getTokenValue() instanceof Double)) {
@@ -535,7 +550,7 @@ public class Sema {
         return value;
     }
 
-    public String convertValueChar(TokenType out, String value){
+    public String convertValueChar(TokenType out, String value) {
         char input = value.charAt(0);
         switch (out) {
             case INT:
@@ -549,7 +564,7 @@ public class Sema {
         return value;
     }
 
-    public String convertValueDouble(TokenType out, String value){
+    public String convertValueDouble(TokenType out, String value) {
         switch (out) {
             case INT:
                 double input = Double.parseDouble(value);
@@ -560,7 +575,7 @@ public class Sema {
         return value;
     }
 
-    public String convertValueInt(TokenType out, String value){
+    public String convertValueInt(TokenType out, String value) {
         switch (out) {
             case DOUBLE:
                 int input = Integer.parseInt(value);
