@@ -432,7 +432,7 @@ public class Parser {
         }
         result.setRight(new Node(signToken));
         result.setRight(parseExpr());
-
+        result.setRight(new Node(TokenType.EMPTY));
         return result;
     }
 

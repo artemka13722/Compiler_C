@@ -5,6 +5,7 @@ import lexer.Token;
 import lexer.TokenType;
 import parser.Node;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ public class Sema {
     private String nameFunction;
     private String nameVariable;
     private boolean assigment = false;
+    private boolean returned = false;
 
     private Node buffer;
     private Node tree;
@@ -22,6 +24,8 @@ public class Sema {
     private Map<String, Integer> functionCount;
 
     private Map<String, List<Variable>> idTableSema;
+
+    private Map<String, List<TokenType>> functionParams;
 
     private Map<String, String> arrays;
 
@@ -35,6 +39,7 @@ public class Sema {
         this.level = 0;
         this.functionCount = new HashMap<>();
         this.arrays = new HashMap<>();
+        this.functionParams = new HashMap<>();
     }
 
     private static boolean checkDouble(String str) {
@@ -117,13 +122,29 @@ public class Sema {
     }
 
     public void paramsCounter(Node child, String name){
-        int countParams = 0;
-        for (Node params : child.getListChild()) {
-            if (params.getTokenType() == TokenType.PARAM) {
-                countParams++;
+        if (!child.getFirstChildren().getTokenType().equals(TokenType.EMPTY)) {
+            int countParams = 0;
+            for (Node params : child.getListChild()) {
+                if (params.getTokenType() == TokenType.PARAM) {
+                    countParams++;
+                }
             }
+            functionCount.put(name, countParams);
+            parasList(child, name);
+        } else {
+            functionCount.put(name, 0);
         }
-        functionCount.put(name, countParams);
+    }
+
+    public void parasList(Node params, String name) {
+
+        List<TokenType> parameters = new ArrayList();
+
+        for (Node param : params.getListChild()) {
+            TokenType type = param.getFirstChildren().getFirstChildren().getTokenType();
+            parameters.add(type);
+        }
+        functionParams.put(name, parameters);
     }
 
     public String bodyName(Node child, Node childFunc) throws CloneNotSupportedException {
@@ -168,13 +189,19 @@ public class Sema {
 
     // проверить правильность returned
     public void commands(Node childCommand) throws CloneNotSupportedException {
-        boolean returned = false;
         switch (childCommand.getTokenType()) {
             case BODY:
                 bodyRec(childCommand);
                 break;
             case NAME:
-                commandName(childCommand, returned);
+                commandName(childCommand);
+                break;
+            case NUMBER:
+                if (returned) {
+                    nameVariable = nameFunction;
+                    commandRec(childCommand);
+                }
+                returned = false;
                 break;
             case RETURN:
                 returned = true;
@@ -196,11 +223,11 @@ public class Sema {
         }
     }
 
-    public void commandName(Node childCommand, boolean returned) throws CloneNotSupportedException {
+    public void commandName(Node childCommand) throws CloneNotSupportedException {
         //приведение типов
         buffer = childCommand.clone();
         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-        if (assigment) {
+        if (assigment || returned) {
 
             TokenType type1 = getTokenType(lvl, nameVariable);
             typeCheck(type1, childCommand);
@@ -227,6 +254,7 @@ public class Sema {
                     System.exit(0);
                 }
             }
+            returned = false;
             childCommand.changeNode(type);
         }
         childCommand.setLeft(getBuffer());
@@ -386,6 +414,20 @@ public class Sema {
         }
 
         commandRec(fun);
+
+        if (countArgs > 0) {
+            List<TokenType> types = new ArrayList<>();
+            for (Node typeARGS : fun.getListChild()) {
+                types.add(typeARGS.getTokenType());
+            }
+
+            List<TokenType> types1 = functionParams.get(name);
+            if(!types1.equals(types)){
+                System.out.printf((char) 27 + "[31m SEMA: разные типы отправляемых значений в функцию",
+                        fun.getValue().getRow(), fun.getValue().getCol());
+                System.exit(0);
+            }
+        }
     }
 
     public String nameFunction(Node fun) throws CloneNotSupportedException {
@@ -443,6 +485,8 @@ public class Sema {
                         command.changeNode(type);
                         command.setLeft(getBuffer());
                         break;
+                    case SIGN:
+                        assigment = true;
                     case EMPTY:
                         assigment = false;
                         break;
@@ -623,6 +667,26 @@ public class Sema {
         return variableList.get(indexOfMax).getTokenType();
 
         //return null;
+    }
+
+    public void condition(Node condition) throws CloneNotSupportedException {
+
+        // TODO: 26.04.2020 проверка на тип массива и после какие то действия
+
+        List types = new ArrayList();
+
+        commandRec(condition);
+
+        for (Node type : condition.getListChild()) {
+            if (type.getTokenType() != TokenType.SIGN) {
+                types.add(type.getTokenType());
+            }
+        }
+
+        if (!types.get(0).equals(types.get(1))) {
+            System.out.println("SEMA : переменные в условии должны быть одного типа");
+            System.exit(0);
+        }
     }
 
 }
