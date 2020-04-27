@@ -214,44 +214,56 @@ public class Sema {
     }
 
     public TokenType typeCheckType(TokenType in, TokenType out) {
-
         if (in.equals(out)) {
             return out;
         }
-
         switch (in) {
             case INT:
-                switch (out) {
-                    case CHAR:
-                        out = TokenType.INTTOCHAR;
-                        break;
-                    case DOUBLE:
-                        out = TokenType.INTTODOUBLE;
-                        break;
-                }
-
+                out = convertInt(out);
+                break;
             case DOUBLE:
-                switch (out) {
-                    case INT:
-                        out = TokenType.DOUBLETOINT;
-                        break;
-                    case CHAR:
-                        out = TokenType.DOUBLETOCHAR;
-                        break;
-                }
-
+               out = convertDouble(out);
+                break;
             case CHAR:
-                switch (out) {
-                    case INT:
-                        out = TokenType.CHARTOINT;
-                        break;
-                    case DOUBLE:
-                        out = TokenType.CHARTODOUBLE;
-                        break;
-                }
+                out = convertChar(out);
         }
         return out;
+    }
 
+    public TokenType convertInt(TokenType out){
+        switch (out) {
+            case CHAR:
+                out = TokenType.INTTOCHAR;
+                break;
+            case DOUBLE:
+                out = TokenType.INTTODOUBLE;
+                break;
+        }
+        return out;
+    }
+
+    public TokenType convertDouble(TokenType out){
+        switch (out) {
+            case INT:
+                out = TokenType.DOUBLETOINT;
+                break;
+            case CHAR:
+                out = TokenType.DOUBLETOCHAR;
+                break;
+        }
+        return out;
+    }
+
+    public TokenType convertChar(TokenType out){
+        switch (out) {
+            case INT:
+                out = TokenType.CHARTOINT;
+                break;
+            case DOUBLE:
+                out = TokenType.CHARTODOUBLE;
+                break;
+        }
+        return out;
     }
 
     public void typeCheck(TokenType type, Node childCommand) {
