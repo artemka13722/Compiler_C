@@ -336,47 +336,55 @@ public class Sema {
         for (Node fun : function.getListChild()) {
             switch (fun.getTokenType()) {
                 case NAME:
-                    buffer = fun.clone();
-                    name = fun.getTokenValue().toString();
-                    String lvl = "0a";
-                    TokenType type = getTokenType(lvl, name);
-                    if (type == null) {
-                        System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
-                                fun.getValue().getRow(), fun.getValue().getCol());
-                        System.exit(0);
-                    }
-                    fun.changeNode(type);
-                    fun.setLeft(getBuffer());
+                    name = nameFunction(fun);
                     break;
                 case ARG_LIST:
-                    int countArgs = 0;
-                    for (Node args : fun.getListChild()) {
-                        if (args.getTokenType() == TokenType.EMPTY) {
-                            break;
-                        }
-                        countArgs++;
-                    }
-                    int count = 0;
-                    try {
-                        count = functionCount.get(name);
-                    } catch (NullPointerException e) {
-                        System.out.printf((char) 27 + "[31m SEMA: функция должна быть описана выше main LOC<%d:%d>",
-                                fun.getValue().getRow(), fun.getValue().getCol());
-                        System.exit(0);
-                    }
-                    if (count != countArgs) {
-                        System.out.printf((char) 27 + "[31m SEMA: разное количество принимаемых и/или отправляемых аргументов LOC<%d:%d>",
-                                fun.getValue().getRow(), fun.getValue().getCol());
-                        System.exit(0);
-                    }
-
-                    commandRec(fun);
+                    argListFunction(fun, name);
                     break;
             }
         }
     }
 
-    // TODO: 23.04.2020 попробовать перевести перебор типов на switch
+    public void argListFunction(Node fun, String name) throws CloneNotSupportedException {
+        int countArgs = 0;
+        for (Node args : fun.getListChild()) {
+            if (args.getTokenType() == TokenType.EMPTY) {
+                break;
+            }
+            countArgs++;
+        }
+        int count = 0;
+        try {
+            count = functionCount.get(name);
+        } catch (NullPointerException e) {
+            System.out.printf((char) 27 + "[31m SEMA: функция должна быть описана выше main LOC<%d:%d>",
+                    fun.getValue().getRow(), fun.getValue().getCol());
+            System.exit(0);
+        }
+        if (count != countArgs) {
+            System.out.printf((char) 27 + "[31m SEMA: разное количество принимаемых и/или отправляемых аргументов LOC<%d:%d>",
+                    fun.getValue().getRow(), fun.getValue().getCol());
+            System.exit(0);
+        }
+
+        commandRec(fun);
+    }
+
+    public String nameFunction(Node fun) throws CloneNotSupportedException {
+        buffer = fun.clone();
+        String name = fun.getTokenValue().toString();
+        String lvl = "0a";
+        TokenType type = getTokenType(lvl, name);
+        if (type == null) {
+            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
+                    fun.getValue().getRow(), fun.getValue().getCol());
+            System.exit(0);
+        }
+        fun.changeNode(type);
+        fun.setLeft(getBuffer());
+        return name;
+    }
+
     public void commandRec(Node command) throws CloneNotSupportedException {
         if (command != null) {
             if (command.getListChild().size() > 0) {
@@ -447,14 +455,14 @@ public class Sema {
                 }
                 break;
             case INT:
-                value = convertType(TokenType.CHAR, TokenType.INT, value);
+                value = convertTypeValue(TokenType.CHAR, TokenType.INT, value);
                 newValue = new Token<Integer>(TokenType.NUMBER, Integer.valueOf(value));
                 buffer.setValue(newValue);
                 command.changeNode(TokenType.INT);
                 command.setLeft(getBuffer());
                 break;
             case DOUBLE:
-                value = convertType(TokenType.CHAR, TokenType.DOUBLE, value);
+                value = convertTypeValue(TokenType.CHAR, TokenType.DOUBLE, value);
                 newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
                 buffer.setValue(newValue);
                 command.changeNode(TokenType.DOUBLE);
@@ -487,7 +495,7 @@ public class Sema {
             case INT:
                 if (!(command.getTokenValue() instanceof Integer)) {
 
-                    value = convertType(TokenType.DOUBLE, TokenType.INT, value);
+                    value = convertTypeValue(TokenType.DOUBLE, TokenType.INT, value);
                     Token<?> newValue = new Token<>(TokenType.NUMBER, Integer.valueOf(value));
                     buffer.setValue(newValue);
 
@@ -498,7 +506,7 @@ public class Sema {
                 break;
             case DOUBLE:
                 if (!(command.getTokenValue() instanceof Double)) {
-                    value = convertType(TokenType.INT, TokenType.DOUBLE, value);
+                    value = convertTypeValue(TokenType.INT, TokenType.DOUBLE, value);
                     Token<?> newValue = new Token<>(TokenType.NUMBER, Double.valueOf(value));
                     buffer.setValue(newValue);
                 }
@@ -507,42 +515,57 @@ public class Sema {
         }
     }
 
-    public String convertType(TokenType in, TokenType out, String value) {
+    public String convertTypeValue(TokenType in, TokenType out, String value) {
 
         if (in.equals(out)) {
             return value;
         } else {
             switch (in) {
                 case INT:
-                    switch (out) {
-                        case DOUBLE:
-                            int input = Integer.parseInt(value);
-                            value = String.valueOf((double) input);
-                            break;
-                    }
+                    value = convertValueInt(out, value);
                     break;
                 case DOUBLE:
-                    switch (out) {
-                        case INT:
-                            double input = Double.parseDouble(value);
-                            int output = (int) Math.round(input);
-                            value = String.valueOf(output);
-                            break;
-                    }
+                    value = convertValueDouble(out, value);
                     break;
                 case CHAR:
-                    char input = value.charAt(0);
-                    switch (out) {
-                        case INT:
-                            value = String.valueOf((int) input);
-                            break;
-                        case DOUBLE:
-                            value = String.valueOf((double) input);
-                            break;
-
-                    }
+                    value = convertValueChar(out, value);
                     break;
             }
+        }
+        return value;
+    }
+
+    public String convertValueChar(TokenType out, String value){
+        char input = value.charAt(0);
+        switch (out) {
+            case INT:
+                value = String.valueOf((int) input);
+                break;
+            case DOUBLE:
+                value = String.valueOf((double) input);
+                break;
+
+        }
+        return value;
+    }
+
+    public String convertValueDouble(TokenType out, String value){
+        switch (out) {
+            case INT:
+                double input = Double.parseDouble(value);
+                int output = (int) Math.round(input);
+                value = String.valueOf(output);
+                break;
+        }
+        return value;
+    }
+
+    public String convertValueInt(TokenType out, String value){
+        switch (out) {
+            case DOUBLE:
+                int input = Integer.parseInt(value);
+                value = String.valueOf((double) input);
+                break;
         }
         return value;
     }
