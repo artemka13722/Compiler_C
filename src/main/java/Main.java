@@ -33,12 +33,10 @@ public class Main {
 
         programTree.writeGraph("./tmp/graph1.dot");
 
-        IdTable idTable = new IdTable();
+        IdTable idTable = new IdTable(programTree);
         //idTable.getAstParent(programTree);
-        idTable.formATablel(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        sema.analyze();
         sema.getTree().writeGraph("./tmp/graph2.dot");
     }
 }

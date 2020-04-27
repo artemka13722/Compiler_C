@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node implements Cloneable{
+public class Node implements Cloneable {
 
     private Node parent;
 
@@ -26,7 +26,7 @@ public class Node implements Cloneable{
         listChild = new ArrayList<>();
     }
 
-    public Node clone() throws CloneNotSupportedException{
+    public Node clone() throws CloneNotSupportedException {
         return (Node) super.clone();
     }
 
@@ -35,7 +35,7 @@ public class Node implements Cloneable{
         listChild = new ArrayList<>();
     }
 
-    public void changeNode(TokenType typeValue){
+    public void changeNode(TokenType typeValue) {
         value = new Token<Object>(typeValue);
         listChild = new ArrayList<>();
     }
@@ -150,6 +150,15 @@ public class Node implements Cloneable{
         public void inc() {
             ++value;
         }
+
     }
 
+    @Override
+    public String toString() {
+        return "Node{" +
+                "parent=" + parent +
+                ", value=" + value +
+                ", listChild=" + listChild +
+                '}';
+    }
 }

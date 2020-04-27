@@ -71,4 +71,14 @@ public class Token<T> {
             return other.value == null;
         } else return value.equals(other.value);
     }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "type=" + type +
+                ", value=" + value +
+                ", row=" + row +
+                ", col=" + col +
+                '}';
+    }
 }

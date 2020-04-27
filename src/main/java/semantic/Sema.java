@@ -40,6 +40,7 @@ public class Sema {
         this.functionCount = new HashMap<>();
         this.arrays = new HashMap<>();
         this.functionParams = new HashMap<>();
+        analyze();
     }
 
     private static boolean checkDouble(String str) {

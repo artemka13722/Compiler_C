@@ -16,11 +16,14 @@ public class IdTable {
     private Map<Integer, Character> subLevel;
     private Integer level;
     private TokenType type;
+    private Node tree;
 
-    public IdTable() {
+    public IdTable(Node tree) {
         this.idTable = new HashMap<>();
         this.subLevel = new HashMap<>();
         this.level = 0;
+        this.tree = tree;
+        formATablel();
     }
 
     public Map<String, List<Variable>> getIdTable() {
@@ -147,7 +150,7 @@ public class IdTable {
         }
     }
 
-    public void formATablel(Node tree) {
+    public void formATablel() {
         List<Node> listChild;
         if (tree != null) {
             listChild = tree.getListChild();
