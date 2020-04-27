@@ -138,7 +138,7 @@ public class Sema {
 
     public void parasList(Node params, String name) {
 
-        List<TokenType> parameters = new ArrayList();
+        ArrayList parameters = new ArrayList();
 
         for (Node param : params.getListChild()) {
             TokenType type = param.getFirstChildren().getFirstChildren().getTokenType();
@@ -152,10 +152,7 @@ public class Sema {
         String name = childFunc.getTokenValue().toString();
         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
         TokenType type = getTokenType(lvl, name);
-        if (type == null) {
-            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>", childFunc.getValue().getRow(), childFunc.getValue().getCol());
-            System.exit(0);
-        }
+        typeCheck(type, childFunc);
         child.changeNode(type);
         child.setLeft(getBuffer());
         nameFunction = name;
@@ -439,11 +436,7 @@ public class Sema {
         String name = fun.getTokenValue().toString();
         String lvl = "0a";
         TokenType type = getTokenType(lvl, name);
-        if (type == null) {
-            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
-                    fun.getValue().getRow(), fun.getValue().getCol());
-            System.exit(0);
-        }
+        typeCheck(type, fun);
         fun.changeNode(type);
         fun.setLeft(getBuffer());
         return name;
@@ -481,11 +474,7 @@ public class Sema {
                         String name = command.getTokenValue().toString();
                         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
                         TokenType type = getTokenType(lvl, name);
-                        if (type == null) {
-                            System.out.printf((char) 27 + "[31m SEMA: переменная не была объявлена LOC<%d:%d>",
-                                    command.getValue().getRow(), command.getValue().getCol());
-                            System.exit(0);
-                        }
+                        typeCheck(type, command);
                         command.changeNode(type);
                         command.setLeft(getBuffer());
                         break;
