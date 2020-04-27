@@ -422,10 +422,14 @@ public class Sema {
             }
 
             List<TokenType> types1 = functionParams.get(name);
-            if(!types1.equals(types)){
-                System.out.printf((char) 27 + "[31m SEMA: разные типы отправляемых значений в функцию",
-                        fun.getValue().getRow(), fun.getValue().getCol());
-                System.exit(0);
+
+            for(int i = 0; i < types1.size(); i++){
+                if(!types.get(i).equals(types1.get(i))){
+                    System.out.printf((char) 27 + "[31m SEMA: разные типы отправляемых значений в функцию. " +
+                                    "Ожидался %s, а на входе %s LOC<%d:%d>",
+                            types1.get(i), types.get(i), fun.getValue().getRow(), fun.getValue().getCol());
+                    System.exit(0);
+                }
             }
         }
     }
