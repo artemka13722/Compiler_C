@@ -17,8 +17,7 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Token<?> programToken = new Token<Object>(TokenType.PROGRAM);
-        Node tree = new Node(programToken);
+        Node tree = new Node(TokenType.PROGRAM);
         tree.setLeft(new Node(TokenType.EMPTY));
 
         Assert.assertEquals(tree, parser.parseProgram());
@@ -30,16 +29,16 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Node command = new Node(new Token<String>(TokenType.COMMAND));
-        Node WHILE = new Node(new Token<String>(TokenType.WHILE));
+        Node command = new Node(TokenType.COMMAND);
+        Node WHILE = new Node(TokenType.WHILE);
 
-        Node condition = new Node(new Token<String>(TokenType.CONDITION)); // три ответвления
+        Node condition = new Node(TokenType.CONDITION); // три ответвления
         Node name1 = new Node(new Token<String>(TokenType.NAME, "a"));
         Node sing = new Node(new Token<String>(TokenType.SIGN, ">"));
         Node name2 = new Node(new Token<String>(TokenType.NAME, "b"));
 
-        Node body = new Node(new Token<String>(TokenType.BODY));
-        Node empty = new Node(new Token<String>(TokenType.EMPTY));
+        Node body = new Node(TokenType.BODY);
+        Node empty = new Node(TokenType.EMPTY);
 
 
         body.setLeft(empty);
@@ -102,9 +101,9 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Node command = new Node(new Token<String>(TokenType.COMMAND));
-        Node printf = new Node(new Token<String>(TokenType.PRINTF));
-        Node printfBody = new Node(new Token<String>(TokenType.PRINTF_BODY));
+        Node command = new Node(TokenType.COMMAND);
+        Node printf = new Node(TokenType.PRINTF);
+        Node printfBody = new Node(TokenType.PRINTF_BODY);
         Node literal = new Node(new Token<String>(TokenType.LITERAL, "test"));
         Node empty = new Node(TokenType.EMPTY);
 
@@ -124,9 +123,9 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Node command = new Node(new Token<String>(TokenType.COMMAND));
-        Node printf = new Node(new Token<String>(TokenType.PRINTF));
-        Node printfBody = new Node(new Token<String>(TokenType.PRINTF_BODY));
+        Node command = new Node(TokenType.COMMAND);
+        Node printf = new Node(TokenType.PRINTF);
+        Node printfBody = new Node(TokenType.PRINTF_BODY);
         Node literal = new Node(new Token<String>(TokenType.LITERAL, "test"));
         Node name = new Node(new Token<String>(TokenType.NAME, "a"));
         Node empty = new Node(TokenType.EMPTY);
@@ -147,8 +146,8 @@ public class ParserTest {
         Parser parser = new Parser(lexer);
 
         Node command = new Node(new Token<String>(TokenType.COMMAND));
-        Node scanf = new Node(new Token<String>(TokenType.SCANF));
-        Node scanfBody = new Node(new Token<String>(TokenType.SCANF_BODY));
+        Node scanf = new Node(TokenType.SCANF);
+        Node scanfBody = new Node(TokenType.SCANF_BODY);
         Node literal = new Node(new Token<String>(TokenType.LITERAL, "test"));
         Node name = new Node(new Token<String>(TokenType.NAME, "a"));
         Node empty = new Node(TokenType.EMPTY);
@@ -196,9 +195,9 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Node tree = new Node(new Token<String>(TokenType.ARRAY));
+        Node tree = new Node(TokenType.ARRAY);
         Node num1 = new Node(new Token<Integer>(TokenType.NUMBER, 1));
-        Node arrayBody = new Node(new Token<String>(TokenType.ARRAY_BODY));
+        Node arrayBody = new Node(TokenType.ARRAY_BODY);
         Node num2 = new Node(new Token<Integer>(TokenType.NUMBER , 1));
 
         arrayBody.setLeft(num2);
@@ -214,9 +213,9 @@ public class ParserTest {
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
-        Node tree = new Node(new Token<String>(TokenType.ARRAY));
+        Node tree = new Node(TokenType.ARRAY);
         Node num1 = new Node(new Token<Integer>(TokenType.NUMBER, 10));
-        Node arrayBody = new Node(new Token<String>(TokenType.ARRAY_BODY));
+        Node arrayBody = new Node(TokenType.ARRAY_BODY);
         Node literal = new Node(new Token<String>(TokenType.LITERAL, "test"));
 
         arrayBody.setLeft(literal);
@@ -247,7 +246,7 @@ public class ParserTest {
 
         Node numNode = new Node(new Token<Integer>(TokenType.NUMBER, 42));
 
-        Node tree = new Node(new Token<String>(TokenType.MINUS));
+        Node tree = new Node(TokenType.MINUS);
         tree.setLeft(numNode);
 
         Assert.assertEquals(tree, parser.parseExpr());
@@ -262,7 +261,7 @@ public class ParserTest {
         Node numNode1 = new Node(new Token<Integer>(TokenType.NUMBER, 5));
         Node numNode2 = new Node(new Token<Integer>(TokenType.NUMBER, 2));
 
-        Node tree = new Node(new Token<String>(TokenType.MULTIPLICATION));
+        Node tree = new Node(TokenType.MULTIPLICATION);
         tree.setLeft(numNode1);
         tree.setRight(numNode2);
 
@@ -278,7 +277,7 @@ public class ParserTest {
         Node numNode1 = new Node(new Token<Integer>(TokenType.NUMBER, 20));
         Node numNode2 = new Node(new Token<Integer>(TokenType.NUMBER, 2));
 
-        Node tree = new Node(new Token<String>(TokenType.DIVISION));
+        Node tree = new Node(TokenType.DIVISION);
         tree.setLeft(numNode1);
         tree.setRight(numNode2);
 
@@ -294,7 +293,7 @@ public class ParserTest {
         Node numNode1 = new Node(new Token<Integer>(TokenType.NUMBER, 2));
         Node numNode2 = new Node(new Token<Integer>(TokenType.NUMBER, 3));
 
-        Node tree = new Node(new Token<String>(TokenType.EXPONENTIATION));
+        Node tree = new Node(TokenType.EXPONENTIATION);
         tree.setLeft(numNode1);
         tree.setRight(numNode2);
 
