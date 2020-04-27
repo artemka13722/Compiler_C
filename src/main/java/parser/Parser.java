@@ -298,7 +298,7 @@ public class Parser {
 
         Token<?> literalToken = lexer.getToken();
         if (literalToken.match(TokenType.LITERAL)) {
-            result.setRight(new Node(TokenType.LITERAL));
+            result.setRight(new Node(literalToken));
         }
 
         Token<?> commaToken = lexer.peekToken();
@@ -414,7 +414,7 @@ public class Parser {
                 }
                 break;
             case LITERAL:
-                result.setRight(new Node(TokenType.LITERAL));
+                result.setRight(new Node(openBraceToken));
                 break;
             default:
                 throw new RuntimeException("P: Ошибка тела массива");
