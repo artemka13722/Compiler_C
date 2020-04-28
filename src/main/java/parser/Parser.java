@@ -204,14 +204,7 @@ public class Parser {
 
                 result.setLeft(new Node(whatEver));
 
-                switch (whatEver.getTokenType()) {
-                    case PRINTF:
-                        result.setRight(parseInOut(TokenType.PRINTF_BODY));
-                        break;
-                    case SCANF:
-                        result.setRight(parseInOut(TokenType.SCANF_BODY));
-                        break;
-                }
+                result.setRight(parseInOut(whatEver));
 
                 Token<?> closeBracketToken = lexer.getToken();
                 if (!closeBracketToken.match(TokenType.BRACKET_CLOSE)) {
@@ -294,8 +287,19 @@ public class Parser {
         return result;
     }
 
-    private Node parseInOut(TokenType tokenType) {
-        Node result = new Node(tokenType);
+    private Node parseInOut(Token out) {
+        Node result;
+
+        switch (out.getTokenType()){
+            case PRINTF:
+                result = new Node(TokenType.PRINTF_BODY);
+                break;
+            case SCANF:
+                result = new Node(TokenType.SCANF_BODY);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + out.getTokenType());
+        }
 
         Token<?> literalToken = lexer.getToken();
         if (literalToken.match(TokenType.LITERAL)) {

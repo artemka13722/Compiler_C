@@ -1,5 +1,6 @@
 import buffer.Buffer;
 import idTable.IdTable;
+import idTable.Variable;
 import lexer.Lexer;
 import lexer.Token;
 import lexer.TokenType;
@@ -10,8 +11,173 @@ import parser.Parser;
 import semantic.Sema;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SemaTest {
+
+
+    @Test
+    public void testParamsFunction(){
+
+        Sema sema = new Sema();
+
+        Node params = new Node(TokenType.PARAMS_LIST);
+
+        Node param1 = new Node(TokenType.PARAM);
+        Node name1 = new Node(new Token<>(TokenType.NAME, "b"));
+        name1.setLeft(new Node(new Token<>(TokenType.INT)));
+        param1.setRight(name1);
+
+        Node param2 = new Node(TokenType.PARAM);
+        Node name2 = new Node(new Token<>(TokenType.NAME, "a"));
+        name2.setLeft(new Node(new Token<>(TokenType.CHAR)));
+        param2.setRight(name2);
+
+        params.setLeft(param1);
+        params.setRight(param2);
+
+        sema.paramsCounter(params, "test");
+
+        int testCount = sema.getFunctionCount().get("test");
+
+        List<TokenType> listType = sema.getFunctionParams().get("test");
+        List<TokenType> testType = new ArrayList<>();
+        testType.add(TokenType.INT);
+        testType.add(TokenType.CHAR);
+
+        Assert.assertEquals(testType, listType);
+        Assert.assertEquals(testCount, 2);
+    }
+
+    @Test
+    public void testConvertType(){
+
+        Sema sema = new Sema();
+        TokenType testType = sema.typeCheckType(TokenType.INT, TokenType.DOUBLE);
+        Assert.assertEquals(testType, TokenType.INTTODOUBLE);
+    }
+
+    @Test
+    public void testArray() throws CloneNotSupportedException {
+        Sema sema = new Sema();
+
+        Node array = new Node(TokenType.ARRAY);
+        array.setLeft(new Node(new Token<>(TokenType.NUMBER, 10)));
+
+        sema.setNameVariable("a");
+
+        Map<String, String> testArray = new HashMap<>();
+        testArray.put("a", "10");
+
+        sema.array(array);
+
+        Assert.assertEquals(testArray, sema.getArrays());
+    }
+
+    @Test
+    public void testNameFunction() throws CloneNotSupportedException {
+
+        Sema sema = new Sema();
+
+        Node fun = new Node(new Token<>(TokenType.NAME, "test"));
+
+        Map<String, List<Variable>> testIdTable = new HashMap<>();
+
+        List<Variable> testList = new ArrayList<>();
+        testList.add(new Variable("0a", TokenType.INT));
+        testIdTable.put("test", testList);
+
+        sema.setIdTableSema(testIdTable);
+
+        String nameFunc = sema.nameFunction(fun);
+        Assert.assertEquals(nameFunc, "test");
+    }
+
+    @Test
+    public void testGetNameType1(){
+
+        Sema sema = new Sema();
+
+        Map<String, List<Variable>> testIdTable = new HashMap<>();
+
+        List<Variable> testList = new ArrayList<>();
+        testList.add(new Variable("1a", TokenType.INT));
+        testIdTable.put("test", testList);
+
+        sema.setIdTableSema(testIdTable);
+
+        TokenType testType = sema.getTokenType("1a", "test");
+        Assert.assertEquals(testType, TokenType.INT);
+    }
+
+    @Test
+    public void testGetNameType2(){
+
+        Sema sema = new Sema();
+
+        Map<String, List<Variable>> testIdTable = new HashMap<>();
+
+        List<Variable> testList = new ArrayList<>();
+        testList.add(new Variable("1a", TokenType.VOID));
+        testIdTable.put("test", testList);
+
+        sema.setIdTableSema(testIdTable);
+
+        TokenType testType = sema.getTokenType("1a", "test");
+        Assert.assertEquals(testType, TokenType.VOID);
+    }
+
+    @Test
+    public void testGetNameType3(){
+
+        Sema sema = new Sema();
+
+        Map<String, List<Variable>> testIdTable = new HashMap<>();
+
+        List<Variable> testList = new ArrayList<>();
+        testList.add(new Variable("1a", TokenType.CHAR));
+        testIdTable.put("test", testList);
+
+        sema.setIdTableSema(testIdTable);
+
+        TokenType testType = sema.getTokenType("1a", "test");
+        Assert.assertEquals(testType, TokenType.CHAR);
+    }
+
+    @Test
+    public void testConvertValue1(){
+
+        Sema sema = new Sema();
+        String testValue = sema.convertTypeValue(TokenType.DOUBLE, TokenType.INT, "10.2");
+        Assert.assertEquals(testValue, "10");
+    }
+
+    @Test
+    public void testConvertValue2(){
+
+        Sema sema = new Sema();
+        String testValue = sema.convertTypeValue(TokenType.INT, TokenType.DOUBLE, "10");
+        Assert.assertEquals(testValue, "10.0");
+    }
+
+    @Test
+    public void testConvertValue3(){
+
+        Sema sema = new Sema();
+        String testValue = sema.convertTypeValue(TokenType.CHAR, TokenType.INT, "a");
+        Assert.assertEquals(testValue, "97");
+    }
+
+    @Test
+    public void testConvertValue4(){
+
+        Sema sema = new Sema();
+        String testValue = sema.convertTypeValue(TokenType.CHAR, TokenType.DOUBLE, "a");
+        Assert.assertEquals(testValue, "97.0");
+    }
 
     @Test
     public void testSimpleProgram() throws CloneNotSupportedException {

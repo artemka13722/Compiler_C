@@ -3,6 +3,7 @@ package semantic;
 import idTable.Variable;
 import lexer.Token;
 import lexer.TokenType;
+import lombok.Data;
 import parser.Node;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Data
 public class Sema {
 
     // придумать что нибудь по лучше
@@ -32,6 +34,14 @@ public class Sema {
     private Map<Integer, Character> subLevel;
     private Integer level;
 
+    public Sema() {
+        this.subLevel = new HashMap<>();
+        this.level = 0;
+        this.functionCount = new HashMap<>();
+        this.arrays = new HashMap<>();
+        this.functionParams = new HashMap<>();
+    }
+
     public Sema(Node tree, Map<String, List<Variable>> idTableSema) throws CloneNotSupportedException {
         this.tree = tree.clone();
         this.idTableSema = idTableSema;
@@ -50,26 +60,6 @@ public class Sema {
             return false;
         }
         return true;
-    }
-
-    public Node getTree() {
-        return tree;
-    }
-
-    public Node getBuffer() {
-        return buffer;
-    }
-
-    public void setBuffer(Node buffer) {
-        this.buffer = buffer;
-    }
-
-    public Integer getLevel() {
-        return level;
-    }
-
-    public void setLevel(Integer level) {
-        this.level = level;
     }
 
     public void addSubLevel(Integer level) {
@@ -575,7 +565,7 @@ public class Sema {
                 command.setLeft(getBuffer());
         }
     }
-
+    //tested
     public String convertTypeValue(TokenType in, TokenType out, String value) {
 
         if (in.equals(out)) {
@@ -630,7 +620,7 @@ public class Sema {
         }
         return value;
     }
-
+    // tested
     public TokenType getTokenType(String lvl, String name) {
 
         List<Variable> variableList = idTableSema.get(name);

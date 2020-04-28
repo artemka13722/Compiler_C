@@ -46,14 +46,16 @@ public class ParserTest {
         condition.setLeft(name1);
         condition.setRight(sing);
         condition.setRight(name2);
+        condition.setRight(empty);
 
         command.setLeft(WHILE);
         command.setRight(condition);
         command.setRight(body);
         command.setRight(empty);
 
+        Node realTree = parser.parseCommand();
 
-        Assert.assertEquals(command, parser.parseCommand());
+        Assert.assertEquals(command, realTree);
     }
 
     @Test
@@ -85,6 +87,7 @@ public class ParserTest {
         condition.setLeft(name1);
         condition.setRight(sing);
         condition.setRight(name2);
+        condition.setRight(empty);
 
         command.setLeft(IF);
         command.setRight(condition);
