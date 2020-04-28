@@ -117,6 +117,7 @@ public class SemaTest {
 
         body.setRight(commandBody1);
         body.setRight(commandBody2);
+        body.setRight(empty);
 
         function.setLeft(typeINT);
         function.setRight(typeName);
@@ -205,6 +206,7 @@ public class SemaTest {
         body.setRight(command2);
         body.setRight(command3);
         body.setRight(command4);
+        body.setRight(empty);
 
         function.setLeft(typeFunction);
         function.setRight(typeName);
@@ -294,6 +296,7 @@ public class SemaTest {
 
         body2.setLeft(callFucntion);
         body2.setRight(commandFunction);
+        body2.setRight(empty);
 
 
         function2.setLeft(typeFunction2);

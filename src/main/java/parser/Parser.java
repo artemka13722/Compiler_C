@@ -122,6 +122,7 @@ public class Parser {
             command = parseCommand();
             result.setRight(command);
         } while (!command.getFirstChildren().getValue().match(TokenType.EMPTY));
+        result.setRight(new Node(TokenType.EMPTY));
         return result;
     }
 

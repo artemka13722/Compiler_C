@@ -216,16 +216,24 @@ public class Sema {
                 /*case CONDITION:
                 condition(childCommand);
                 break;*/
+            case CALL_FUNCTION:
+                assigment = false;
+                commandCallFunction(childCommand);
+                break;
             default:
                 commandRec(childCommand);
         }
+    }
+
+    public void commandCallFunction(Node childCommand) throws CloneNotSupportedException {
+        function(childCommand);
     }
 
     public void commandName(Node childCommand) throws CloneNotSupportedException {
         //приведение типов
         buffer = childCommand.clone();
         String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-        if (assigment || returned) {
+        if (assigment) {
 
             TokenType type1 = getTokenType(lvl, nameVariable);
             typeCheck(type1, childCommand);
@@ -252,9 +260,9 @@ public class Sema {
                     System.exit(0);
                 }
             }
-            returned = false;
             childCommand.changeNode(type);
         }
+        returned = false;
         childCommand.setLeft(getBuffer());
     }
 
