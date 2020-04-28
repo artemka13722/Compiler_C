@@ -217,4 +217,96 @@ public class SemaTest {
         Assert.assertEquals(program, semaTree);
     }
 
+    @Test
+    public void testFunction() throws CloneNotSupportedException {
+
+        Buffer buffer = new Buffer(new StringReader("" +
+                "void test(int a){}" +
+                "int main(){" +
+                "test(42);" +
+                "}"));
+        Lexer lexer = new Lexer(buffer);
+        Parser parser = new Parser(lexer);
+        Node programTree = parser.parseProgram();
+
+        IdTable idTable = new IdTable(programTree);
+
+        Sema sema = new Sema(programTree, idTable.getIdTable());
+        Node semaTree = sema.getTree();
+
+
+        Node program = new Node(TokenType.PROGRAM);
+        Node empty = new Node(TokenType.EMPTY);
+
+        Node function1 = new Node(new Token<>(TokenType.FUNCTION, "test"));
+        Node typeFunction1 = new Node(TokenType.TYPE);
+        typeFunction1.setLeft(new Node(TokenType.VOID));
+
+        Node typeName1 = new Node(TokenType.VOID);
+        Node nameFunction1 = new Node(new Token<>(TokenType.NAME, "test"));
+        typeName1.setLeft(nameFunction1);
+
+        Node paramsList1 = new Node(TokenType.PARAMS_LIST);
+        Node paramType = new Node(new Token<>(TokenType.PARAM, "a"));
+
+        Node typeparam1 = new Node(TokenType.TYPE);
+        typeparam1.setLeft(new Node(TokenType.INT));
+
+        paramType.setLeft(typeparam1);
+        paramsList1.setLeft(paramType);
+
+        Node body1 = new Node(TokenType.BODY);
+        body1.setLeft(empty);
+
+        function1.setRight(typeFunction1);
+        function1.setRight(typeName1);
+        function1.setRight(paramsList1);
+        function1.setRight(body1);
+
+
+        Node function2 = new Node(new Token<>(TokenType.FUNCTION, "main"));
+
+        Node typeFunction2 = new Node(TokenType.TYPE);
+        typeFunction2.setLeft(new Node(TokenType.INT));
+
+        Node typeName2 = new Node(TokenType.INT);
+        Node nameFunction2 = new Node(new Token<>(TokenType.NAME, "main"));
+        typeName2.setLeft(nameFunction2);
+
+        Node paramsList2 = new Node(TokenType.PARAMS_LIST);
+        paramsList2.setLeft(empty);
+
+        Node body2 = new Node(TokenType.BODY);
+
+        Node callFucntion = new Node(TokenType.CALL_FUNCTION);
+        callFucntion.setLeft(typeName1);
+
+        Node argList = new Node(TokenType.ARG_LIST);
+        Node nubmer = new Node(TokenType.INT);
+        nubmer.setLeft(new Node(new Token<>(TokenType.NUMBER, 42)));
+        argList.setLeft(nubmer);
+
+        Node commandFunction = new Node(TokenType.COMMAND);
+        commandFunction.setLeft(empty);
+
+        callFucntion.setRight(argList);
+        callFucntion.setRight(empty);
+
+        body2.setLeft(callFucntion);
+        body2.setRight(commandFunction);
+
+
+        function2.setLeft(typeFunction2);
+        function2.setRight(typeName2);
+        function2.setRight(paramsList2);
+        function2.setRight(body2);
+
+        program.setLeft(function1);
+        program.setRight(function2);
+        program.setRight(empty);
+
+
+        Assert.assertEquals(program, semaTree);
+    }
+
 }
