@@ -11,28 +11,35 @@ import java.util.Map;
 public class CodeGen {
 
     Node tree;
+    String nameLC = "LC";
+    Integer numberLC;
+    List<String> assembler = new ArrayList<>();
     private Map<Integer, Character> subLevel;
     private Integer level;
 
+    private Map<String, Integer> addressVar;
+    private Integer varBytes = 0;
 
-    String nameLC = "LC";
-    Integer numberLC;
-
-    List<String> assembler = new ArrayList<>();
 
     public CodeGen(Node tree) {
         this.subLevel = new HashMap<>();
         this.level = 0;
         this.tree = tree;
+        addressVar = new HashMap<>();
         generator();
     }
 
-    public String getNameLC(){
+    public void setVar(String name){
+        varBytes = varBytes + 4;
+        addressVar.put(name, varBytes);
+    }
+
+    public String getNameLC() {
         return this.nameLC + numberLC.toString();
     }
 
-    public void setNameLC(){
-        if(numberLC == null){
+    public void setNameLC() {
+        if (numberLC == null) {
             numberLC = 0;
         } else {
             numberLC++;
@@ -64,7 +71,7 @@ public class CodeGen {
         }
     }
 
-    public void generator(){
+    public void generator() {
         if (tree != null) {
             for (Node child : tree.getListChild()) {
                 if (child.getTokenType() == TokenType.FUNCTION) {
@@ -74,14 +81,17 @@ public class CodeGen {
         }
     }
 
-    public void functionParam(Node body){
+    public void functionParam(Node body) {
         addSubLevel(level);
 
-        for(Node functionParam : body.getListChild()){
+        for (Node functionParam : body.getListChild()) {
 
-            switch (functionParam.getTokenType()){
-                case NAME:
-                    assemblerFunctionNmae(functionParam);
+            switch (functionParam.getTokenType()) {
+
+                // тип функции, разобраться почему сдесь анотированное AST а не обычное
+
+                case INT:
+                    assemblerFunctionNmae(functionParam.getFirstChildren());
                     break;
                 case PARAMS_LIST:
 
@@ -96,7 +106,7 @@ public class CodeGen {
         }
     }
 
-    public void assemblerFunctionNmae(Node functionName){
+    public void assemblerFunctionNmae(Node functionName) {
         String name = functionName.getTokenValue().toString();
         assembler.add(name + ":");
         assembler.add("pushq   %rbp");
@@ -104,11 +114,11 @@ public class CodeGen {
 
     }
 
-    public void functionBody(Node functionBody){
+    public void functionBody(Node functionBody) {
         setLevel(getLevel() + 1);
         addSubLevel(level);
         for (Node body : functionBody.getListChild()) {
-            switch (body.getTokenType()){
+            switch (body.getTokenType()) {
                 case COMMAND:
                     bodyCommand(body);
                     break;
@@ -120,16 +130,47 @@ public class CodeGen {
         }
     }
 
-    public void bodyCommand(Node bodyCommand){
+    public void bodyCommand(Node bodyCommand) {
 
         setNameLC();
+
+        TokenType com = null;
+        boolean assigment = false;
+        boolean literalCheck = false;
+        boolean announcementVar = false;
+
+        String nameVariable = null;
 
         List<String> commandAssembler = new ArrayList<>();
         List<String> literal = new ArrayList<>();
 
-        for(Node command : bodyCommand.getListChild()){
-            switch (command.getTokenType()){
+        for (Node command : bodyCommand.getListChild()) {
+            switch (command.getTokenType()) {
+
+                // объявление переменной
+                case TYPE:
+                    announcementVar = true;
+                    break;
+                    // разобраться с деревьями
+                case INT:
+                    com = command.getTokenType();
+                    if(announcementVar){
+                        nameVariable = command.getFirstChildren().getTokenValue().toString();
+                        setVar(nameVariable);
+                    }
+                    break;
+                case ASSIGNMENT:
+                    assigment = true;
+                    break;
+                case NUMBER:
+
+                    if(assigment){
+                        commandAssembler.add("$" + command.getTokenValue() + ", -" + addressVar.get(nameVariable) + "(%rbp)");
+                    }
+
+                    break;
                 case PRINTF:
+                    literalCheck = true;
 
                     commandAssembler.add("$." + getNameLC() + ", %edi");
                     commandAssembler.add("movl    $0, %eax");
@@ -143,14 +184,24 @@ public class CodeGen {
 
                     break;
                 case EMPTY:
-
                     // проверка на то что был принт/скан
-
-                    assembler.addAll(0, literal);
+                    if (literalCheck) {
+                        assembler.addAll(0, literal);
+                    }
                     assembler.addAll(commandAssembler);
 
+                    break;
             }
         }
     }
 
+    public int typeToByte(TokenType type){
+        int bytes = 0;
+
+        switch (type){
+            case INT:
+                bytes = 4;
+        }
+        return bytes;
+    }
 }
