@@ -153,9 +153,8 @@ public class CodeGen {
                     break;
                     // разобраться с деревьями
                 case INT:
-                    com = command.getTokenType();
+                    nameVariable = command.getFirstChildren().getTokenValue().toString();
                     if(announcementVar){
-                        nameVariable = command.getFirstChildren().getTokenValue().toString();
                         setVar(nameVariable);
                     }
                     break;
