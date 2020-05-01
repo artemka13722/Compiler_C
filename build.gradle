@@ -21,6 +21,14 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.10'
 }
 
+sourceSets {
+    test {
+        java {
+            srcDirs = ["src/test/java"]  // Note @Peter comment below
+        }
+    }
+}
+
 run {
     standardInput = System.in
 }

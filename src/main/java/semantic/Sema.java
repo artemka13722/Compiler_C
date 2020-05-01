@@ -14,7 +14,6 @@ import java.util.Map;
 @Data
 public class Sema {
 
-    // придумать что нибудь по лучше
     private String nameFunction;
     private String nameVariable;
     private boolean assigment = false;
@@ -75,18 +74,9 @@ public class Sema {
         }
     }
 
-    public void remSubLevel(Integer level) {
-        Character subLvl = this.subLevel.get(level);
-        subLvl = (char) (subLvl - 1);
-        this.subLevel.put(level, subLvl);
-    }
-
-    // проверить что тут происходит
     public void analyze() throws CloneNotSupportedException {
-        List<Node> listChild;
         if (tree != null) {
-            listChild = tree.getListChild();
-            for (Node child : listChild) {
+            for (Node child : tree.getListChild()) {
                 if (child.getTokenType() == TokenType.FUNCTION) {
                     body(child);
                 }
@@ -175,7 +165,6 @@ public class Sema {
         }
     }
 
-    // проверить правильность returned
     public void commands(Node childCommand) throws CloneNotSupportedException {
         switch (childCommand.getTokenType()) {
             case BODY:
@@ -467,15 +456,7 @@ public class Sema {
 
                         break;
                     case NAME:
-                        // добавить приведение типов переменных
-
-                        buffer = command.clone();
-                        String name = command.getTokenValue().toString();
-                        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
-                        TokenType type = getTokenType(lvl, name);
-                        typeCheck(type, command);
-                        command.changeNode(type);
-                        command.setLeft(getBuffer());
+                        commandRecName(command);
                         break;
                     case SIGN:
                         assigment = true;
@@ -486,6 +467,16 @@ public class Sema {
             }
         }
 
+    }
+
+    public void commandRecName(Node command) throws CloneNotSupportedException {
+        buffer = command.clone();
+        String name = command.getTokenValue().toString();
+        String lvl = getLevel().toString() + subLevel.get(getLevel()).toString();
+        TokenType type = getTokenType(lvl, name);
+        typeCheck(type, command);
+        command.changeNode(type);
+        command.setLeft(getBuffer());
     }
 
     public void checkTypeChar(Node command) {
@@ -665,7 +656,7 @@ public class Sema {
 
         // TODO: 26.04.2020 проверка на тип массива и после какие то действия
 
-        List types = new ArrayList();
+        ArrayList types = new ArrayList();
 
         commandRec(condition);
 
