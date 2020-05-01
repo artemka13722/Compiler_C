@@ -12,7 +12,7 @@ import java.io.Reader;
 public class Main {
     public static void main(String[] args) throws CloneNotSupportedException {
         String file;
-        if(args.length > 0){
+        if (args.length > 0) {
             file = args[0];
         } else {
             throw new RuntimeException("Не указан путь к файлу в аргументах запуска");
@@ -20,15 +20,15 @@ public class Main {
 
         Reader fileReader = null;
         try {
-            fileReader = new FileReader( file );
+            fileReader = new FileReader(file);
         } catch (IOException e) {
-            System.out.println( "Не смогли открыть файл: " + file );
+            System.out.println("Не смогли открыть файл: " + file);
             return;
         }
 
-        Buffer buffer = new Buffer( fileReader );
+        Buffer buffer = new Buffer(fileReader);
         Lexer lexer = new Lexer(buffer);
-        Parser parser = new Parser( lexer );
+        Parser parser = new Parser(lexer);
         Node programTree = parser.parseProgram();
 
         programTree.writeGraph("./tmp/graph1.dot");
@@ -38,5 +38,11 @@ public class Main {
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
         sema.getTree().writeGraph("./tmp/graph2.dot");
+
+        /*CodeGen codeGen = new CodeGen(programTree);
+
+        for (int i = 0; i < codeGen.getAssembler().size(); i++) {
+            System.out.println(codeGen.getAssembler().get(i));
+        }*/
     }
 }
