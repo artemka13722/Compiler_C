@@ -53,6 +53,7 @@ public class NewMain {
                         dumpAst(fileReader, astPath);
                     } else {
                         dumpAst(fileReader, "./tmp/ast.dot");
+                        System.out.println("Файл дерева создан по пути ./tmp/ast.dot");
                     }
                     break;
                 case "--dump-asm":
