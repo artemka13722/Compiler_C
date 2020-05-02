@@ -19,18 +19,19 @@ public class NewMain {
 
     public static String option;
     public static String inputFile;
+    public static String astPath;
 
     public static void main(String[] args) {
 
         try {
             processingArguments(args);
-            compiler();
+            compiler(args);
         }catch (ExceptionCommand | CloneNotSupportedException e){
             e.printStackTrace();
         }
     }
 
-    public static void compiler() throws CloneNotSupportedException {
+    public static void compiler(String[] args) throws CloneNotSupportedException, ExceptionCommand {
 
         Reader fileReader;
         try {
@@ -48,7 +49,11 @@ public class NewMain {
                     dumpTokens(fileReader);
                     break;
                 case "--dump-ast":
-                    dumpAst(fileReader);
+                    if(astPath != null){
+                        dumpAst(fileReader, astPath);
+                    } else {
+                        throw new ExceptionCommand();
+                    }
                     break;
                 case "--dump-asm":
                     dumpAsm(fileReader);
@@ -73,14 +78,20 @@ public class NewMain {
         // в процессе
     }
 
-    public static void dumpAst(Reader fileReader){
+    public static void dumpAst(Reader fileReader, String out) throws CloneNotSupportedException {
         Buffer buffer = new Buffer(fileReader);
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
 
         Node programTree = parser.parseProgram();
 
-        programTree.writeGraph("./tmp/graph1.dot");
+        programTree.writeGraph(out);
+
+        IdTable idTable = new IdTable(programTree);
+        idTable.getAstParent(programTree); // дерево начинает хранить предка
+
+        Sema sema = new Sema(programTree, idTable.getIdTable());
+        sema.getTree().writeGraph("./tmp/SemaAst.dot");
     }
 
     public static void dumpTokens(Reader fileReader){
@@ -107,11 +118,18 @@ public class NewMain {
             if (!option.equals("--dump-tokens") && !option.equals("--dump-ast") && !option.equals("--dump-asm")) {
                 throw new ExceptionCommand();
             }
+        } else if(args.length == 3) {
+            option = args[0];
+            inputFile = args[1];
+            astPath = args[2];
+            if (!option.equals("--dump-tokens") && !option.equals("--dump-ast") && !option.equals("--dump-asm")) {
+                throw new ExceptionCommand();
+            }
         } else {
             if (args.length == 1) {
                 inputFile = args[0];
             } else {
-                throw new ExceptionCommand();
+                inputFile = "./examples/min_array.c";
             }
         }
     }

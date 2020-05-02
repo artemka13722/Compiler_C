@@ -6,7 +6,7 @@ plugins {
 group 'org.example'
 version '1.0-SNAPSHOT'
 
-mainClassName = "Main"
+mainClassName = "application/NewMain"
 
 sourceCompatibility = 1.8
 
