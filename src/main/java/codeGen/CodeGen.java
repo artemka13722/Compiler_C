@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class CodeGen {
 
+    boolean anyNames = false;
+
     Node tree;
     String nameLC = "LC";
     Integer numberLC;
@@ -177,10 +179,7 @@ public class CodeGen {
 
                     break;
                 case PRINTF_BODY:
-
-                    literal.add("." + getNameLC() + ":");
-                    literal.add(".string \"" + command.getFirstChildren().getTokenValue().toString() + "\"");
-
+                   commandAssembler.addAll(0,printfBody(command, literal, commandAssembler));
                     break;
                 case EMPTY:
                     // проверка на то что был принт/скан
@@ -192,6 +191,44 @@ public class CodeGen {
                     break;
             }
         }
+    }
+
+    public List<String> printfBody(Node command, List<String> literal, List<String> commandAsm){
+
+        literal.add("." + getNameLC() + ":");
+        literal.add(".string \"" + command.getFirstChildren().getTokenValue().toString() + "\"");
+
+        List<String> names = new ArrayList<>();
+        List<String> asm = new ArrayList<>();
+
+        if(command.getListChild().size() > 1){
+            for(Node printfBody : command.getListChild()){
+                switch (printfBody.getTokenType()){
+                    case INT:
+                    case CHAR:
+                    case DOUBLE:
+                        String name = printfBody.getFirstChildren().getTokenValue().toString();
+                        names.add(name);
+                        break;
+                }
+            }
+
+        }
+
+        if(names.size() == 1){
+            commandAsm.add(0,"movl    -" + addressVar.get(names.get(0)) + "(%rbp), %esi");
+        } else if(names.size() > 1){
+
+            for(int i = 0; i < names.size(); i++){
+                asm.add("movl    -" + addressVar.get(names.get(i)) + "(%rbp), %esi");
+                if(i+1 != names.size()){
+                    asm.add("$." + getNameLC() + ", %edi");
+                    asm.add("movl    $0, %eax");
+                    asm.add("call    printf");
+                }
+            }
+        }
+        return asm;
     }
 
     public int typeToByte(TokenType type){
