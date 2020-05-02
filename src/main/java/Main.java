@@ -15,10 +15,10 @@ public class Main {
         if (args.length > 0) {
             file = args[0];
         } else {
-            throw new RuntimeException("Не указан путь к файлу в аргументах запуска");
+            file = "./examples/min_array.c";
         }
 
-        Reader fileReader = null;
+        Reader fileReader;
         try {
             fileReader = new FileReader(file);
         } catch (IOException e) {
