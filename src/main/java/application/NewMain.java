@@ -52,7 +52,7 @@ public class NewMain {
                     if(astPath != null){
                         dumpAst(fileReader, astPath);
                     } else {
-                        throw new ExceptionCommand();
+                        dumpAst(fileReader, "./tmp/ast.dot");
                     }
                     break;
                 case "--dump-asm":
@@ -91,7 +91,7 @@ public class NewMain {
         idTable.getAstParent(programTree); // дерево начинает хранить предка
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        sema.getTree().writeGraph("./tmp/SemaAst.dot");
+        sema.getTree().writeGraph("./tmp/astSema.dot");
     }
 
     public static void dumpTokens(Reader fileReader){
