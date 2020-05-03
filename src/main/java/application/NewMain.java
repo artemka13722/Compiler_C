@@ -150,8 +150,6 @@ public class NewMain {
         }
 
         String encodedUrl = URLEncoder.encode(test, "UTF-8").replace("+", "%20");
-
-        encodedUrl.replaceAll("\\+", "%20");
         System.out.println("https://dreampuf.github.io/GraphvizOnline/#" + encodedUrl);
     }
 }
