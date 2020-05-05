@@ -62,6 +62,15 @@ public class CodeGen {
         this.level = level;
     }
 
+    public static boolean isNumeric(String strNum) {
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException | NullPointerException nfe) {
+            return false;
+        }
+        return true;
+    }
+
     public void addSubLevel(Integer level) {
         Character subLvl = this.subLevel.get(level);
 
@@ -206,14 +215,54 @@ public class CodeGen {
                     break;
                 case PLUS:
                     if(node != 1){
+
                         String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
                         String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
 
-                        commandAssembler.add("movl $"+num1+", %edx");
-                        commandAssembler.add("addl $"+num2+", %edx");
 
+                        if(isNumeric(num1)){
+                            commandAssembler.add("movl    $"+num1+", %edx");
+                        } else {
+                            if(num1 != nameVariable){
+                                commandAssembler.add("movl    -"+addressVar.get(num1) +"(%rbp), %edx");
+                            }
+                        }
+
+                        if(isNumeric(num2)){
+                            commandAssembler.add("movl    $"+num2+", %edx");
+                        } else {
+                            if(num2 != nameVariable){
+                                commandAssembler.add("movl    -"+addressVar.get(num2) +"(%rbp), %edx");
+                            }
+                        }
                         commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
+                        node++;
+                    }
+                    break;
+                case MULTIPLICATION:
+                    if(node != 1){
 
+                        String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
+                        String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
+
+
+                        if(isNumeric(num1)){
+                            commandAssembler.add("movl    $"+num1+", %edx");
+                        } else {
+                            if(num1 != nameVariable){
+                                commandAssembler.add("movl    -"+addressVar.get(num1) +"(%rbp), %edx");
+                            }
+                        }
+
+                        if(isNumeric(num2)){
+                            commandAssembler.add("movl    $"+num2+", %eax");
+                        } else {
+                            if(num2 != nameVariable){
+                                commandAssembler.add("movl    -"+addressVar.get(num2) +"(%rbp), %eax");
+                            }
+                        }
+                        commandAssembler.add("mull    %edx");
+                        commandAssembler.add("movl    %eax, -" + addressVar.get(nameVariable) + "(%rbp)");
                         node++;
                     }
                     break;
