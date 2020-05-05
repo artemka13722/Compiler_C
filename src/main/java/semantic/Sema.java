@@ -20,7 +20,7 @@ public class Sema {
     private boolean returned = false;
 
     private Node buffer;
-    private Node tree;
+    private Node treeSema;
 
     private Map<String, Integer> functionCount;
 
@@ -42,7 +42,7 @@ public class Sema {
     }
 
     public Sema(Node tree, Map<String, List<Variable>> idTableSema) throws CloneNotSupportedException {
-        this.tree = tree.clone();
+        this.treeSema = tree.clone();
         this.idTableSema = idTableSema;
         this.subLevel = new HashMap<>();
         this.level = 0;
@@ -75,8 +75,8 @@ public class Sema {
     }
 
     public void analyze() throws CloneNotSupportedException {
-        if (tree != null) {
-            for (Node child : tree.getListChild()) {
+        if (treeSema != null) {
+            for (Node child : treeSema.getListChild()) {
                 if (child.getTokenType() == TokenType.FUNCTION) {
                     body(child);
                 }
@@ -185,6 +185,7 @@ public class Sema {
                 break;
             case ASSIGNMENT:
                 assigment = true;
+                commandRec(childCommand);
                 break;
             case ARRAY:
                 array(childCommand);

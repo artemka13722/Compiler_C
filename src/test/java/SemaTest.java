@@ -190,7 +190,7 @@ public class SemaTest {
         IdTable idTable = new IdTable(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        Node semaTree = sema.getTree();
+        Node semaTree = sema.getTreeSema();
 
 
         Node program = new Node(TokenType.PROGRAM);
@@ -237,7 +237,7 @@ public class SemaTest {
         IdTable idTable = new IdTable(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        Node semaTree = sema.getTree();
+        Node semaTree = sema.getTreeSema();
 
 
         Node program = new Node(TokenType.PROGRAM);
@@ -311,7 +311,7 @@ public class SemaTest {
         IdTable idTable = new IdTable(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        Node semaTree = sema.getTree();
+        Node semaTree = sema.getTreeSema();
 
 
         Node program = new Node(TokenType.PROGRAM);
@@ -400,7 +400,7 @@ public class SemaTest {
         IdTable idTable = new IdTable(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        Node semaTree = sema.getTree();
+        Node semaTree = sema.getTreeSema();
 
 
         Node program = new Node(TokenType.PROGRAM);

@@ -134,7 +134,7 @@ public class Parser {
             case BRACE_CLOSE:
                 break;
             case INT:
-            case DOUBLE:
+            //case DOUBLE:
             case CHAR:
                 lexer.getToken();
                 Token<?> nameToken = lexer.getToken();
@@ -153,8 +153,14 @@ public class Parser {
                         case ASSIGNMENT:
                             //result.setLeft(new Node(whatEver));
                             lexer.getToken();
-                            result.setRight(new Node(openBracetToken));
-                            result.setRight(parseExpr());
+                           /* result.setRight(new Node(openBracetToken));
+                            result.setRight(parseExpr());*/
+
+
+                            Node assigment = new Node(openBracetToken);
+                            assigment.setLeft(parseExpr());
+                            result.setRight(assigment);
+
                             break;
                     }
                 } else {
@@ -169,8 +175,9 @@ public class Parser {
 
                     case ASSIGNMENT:
                         result.setLeft(new Node(whatEver));
-                        result.setRight(new Node(assignToken));
-                        result.setRight(parseExpr());
+                        Node assigment = new Node(assignToken);
+                        assigment.setLeft(parseExpr());
+                        result.setRight(assigment);
                         break;
                     case BRACET_OPEN:
                         result.setLeft(new Node(whatEver));
@@ -471,7 +478,7 @@ public class Parser {
 
         switch (typeToken.getTokenType()) {
             case INT:
-            case DOUBLE:
+            //case DOUBLE:
             case VOID:
             case CHAR:
                 Node specificType = new Node(typeToken);

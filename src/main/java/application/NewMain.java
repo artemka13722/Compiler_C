@@ -95,7 +95,7 @@ public class NewMain {
         idTable.getAstParent(programTree); // дерево начинает хранить предка
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        sema.getTree().writeGraph(outSemaAst);
+        sema.getTreeSema().writeGraph(outSemaAst);
 
         System.out.println("Файл аннотированного дерева создан по пути"+ outSemaAst);
         convertDotToUrl(outSemaAst);
