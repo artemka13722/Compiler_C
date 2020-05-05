@@ -92,7 +92,6 @@ public class NewMain {
         convertDotToUrl(outAst);
 
         IdTable idTable = new IdTable(programTree);
-        idTable.getAstParent(programTree); // дерево начинает хранить предка
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
         sema.getTreeSema().writeGraph(outSemaAst);

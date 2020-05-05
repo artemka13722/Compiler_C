@@ -163,15 +163,6 @@ public class IdTable {
             }
         }
     }
-
-    public void getAstParent(Node tree) {
-        if (tree.getListChild().size() != 0) {
-            for (Node children : tree.getListChild()) {
-                children.setParent(tree);
-                getAstParent(children);
-            }
-        }
-    }
 }
 
 

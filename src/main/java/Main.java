@@ -1,4 +1,5 @@
 import buffer.Buffer;
+import codeGen.CodeGen;
 import idTable.IdTable;
 import lexer.Lexer;
 import parser.Node;
@@ -34,15 +35,25 @@ public class Main {
         programTree.writeGraph("./tmp/graph1.dot");
 
         IdTable idTable = new IdTable(programTree);
-        //idTable.getAstParent(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
-        sema.getTree().writeGraph("./tmp/graph2.dot");
+        sema.getTreeSema().writeGraph("./tmp/graph2.dot");
 
-        /*CodeGen codeGen = new CodeGen(programTree);
+        getAstParent(sema.getTreeSema());
+
+        CodeGen codeGen = new CodeGen(programTree);
 
         for (int i = 0; i < codeGen.getAssembler().size(); i++) {
             System.out.println(codeGen.getAssembler().get(i));
-        }*/
+        }
+    }
+
+    public static void getAstParent(Node tree) {
+        if (tree.getListChild().size() != 0) {
+            for (Node children : tree.getListChild()) {
+                children.setParent(tree);
+                getAstParent(children);
+            }
+        }
     }
 }
