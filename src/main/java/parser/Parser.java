@@ -313,6 +313,7 @@ public class Parser {
             result.setRight(new Node(literalToken));
         }
 
+        // TODO: 06.05.2020 возможно научить выводить массив по индексам
         Token<?> commaToken = lexer.peekToken();
 
         if (commaToken.match(TokenType.BRACKET_CLOSE)) {
@@ -352,17 +353,18 @@ public class Parser {
         Token<?> assignToken = lexer.getToken();
 
         if (assignToken.match(TokenType.ASSIGNMENT)) {
-            result.setRight(new Node(assignToken));
 
+            Node assigment = new Node(assignToken);
             switch (lexer.peekToken().getTokenType()) {
                 case CHAR:
                 case NUMBER:
                 case NAME:
-                    result.setRight(parseExpr());
+                    assigment.setRight(parseExpr());
                     break;
                 default:
                     throw new RuntimeException("P: неизвестный тип");
             }
+            result.setRight(assigment);
         } else {
             throw new RuntimeException("P: отсутсвует знак = у массива");
         }
@@ -373,7 +375,7 @@ public class Parser {
     public Node parseArray() {
         Node result = new Node(TokenType.ARRAY);
 
-        lexer.getToken();
+        Token<?>  tet = lexer.getToken();
         Token<?> numberToken = lexer.getToken();
 
         switch (numberToken.getTokenType()){
@@ -594,8 +596,10 @@ public class Parser {
                             throw new RuntimeException("P: отсвутствует закрывающая скобка");
                         }
                         break;
+                    // TODO: 06.05.2020 возможно поменять
                     case BRACET_OPEN:
-                        result = parseArray();
+                        result = new Node(token);
+                        result.setLeft(parseArray());
                         break;
                     default:
                         result = new Node(token);
