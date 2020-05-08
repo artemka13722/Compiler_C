@@ -14,8 +14,6 @@ public class CodeGen {
 
 
     private Integer numberLC;
-    private Integer numberIF = 0;
-
 
     private Integer bodyCounter = 0;
 
@@ -61,46 +59,25 @@ public class CodeGen {
 
 
 
-    public String getNameIf() {
-        return ".if" + numberIF.toString();
+    public String getNameIf(Integer bodyCounter, Integer numberIF) {
+        String val = bodyCounter.toString() + numberIF;
+        return ".if" + val;
     }
 
-    public String getNameIfNext() {
-        Integer nextVal = numberIF + 1;
-        return ".if" + nextVal.toString();
+    public String getNameIfNext(Integer bodyCounter, Integer numberIF) {
+        String nextVal = bodyCounter.toString() + (numberIF + 1);
+        return ".if" + nextVal;
     }
-
-    public void setNameIf() {
-        if (numberIF == null) {
-            numberIF = 0;
-        } else {
-            numberIF++;
-        }
-    }
-
 
     public String getNameWhile(Integer bodyCounter, Integer numberWhile) {
         String val = bodyCounter.toString() + numberWhile;
         return ".while" + val;
-        //return ".while" + numberWhile.toString();
     }
 
     public String getNameWhilenext(Integer bodyCounter, Integer numberWhile) {
-
-
         String nextVal = bodyCounter.toString() + (numberWhile + 1);
-
-        //Integer nextVal = numberWhile + 1;
-        //return ".while" + nextVal.toString();
         return ".while" + nextVal;
     }
-
-
-        /*if (numberWhile == null) {
-            numberWhile = 0;
-        } else {
-            numberWhile++;
-        }*/
 
     public List<String> getAssembler() {
         return assembler;
@@ -268,6 +245,7 @@ public class CodeGen {
 
         Integer randForCommand = bodyCounter;
         Integer numberWhile = 0;
+        Integer numberIf = 0;
 
         List<String> commandAssembler = new ArrayList<>();
         List<String> literal = new ArrayList<>();
@@ -340,7 +318,7 @@ public class CodeGen {
                         conditionWhile(command, commandAssembler, randForCommand, numberWhile);
                     }
                     if(ifCommand){
-                        conditionIf(command, commandAssembler);
+                        conditionIf(command, commandAssembler, randForCommand, numberIf);
                     }
 
 
@@ -361,14 +339,14 @@ public class CodeGen {
 
 
                     if(ifCommand){
-                        setNameIf();
+                        numberIf++;
                         //commandAssembler.add(1, getNameIf() + ":"); // КОСТЫЛЬ
 
                         //returnAsm = true;
                         List<String> test = bodyRec(command);
 
                         commandAssembler.addAll(test);
-                        commandAssembler.add( getNameIf() + ":");
+                        commandAssembler.add( getNameIf(randForCommand,numberIf) + ":");
                     }
 
 
@@ -392,7 +370,7 @@ public class CodeGen {
         return null;
     }
 
-    public void conditionIf(Node condIf, List<String> assembler){
+    public void conditionIf(Node condIf, List<String> assembler, Integer randForCommand, Integer numberIf){
 
         /*String var1 = null;
         String var2 = null;
@@ -557,22 +535,22 @@ public class CodeGen {
 
         switch (signType){
             case ">":
-                assembler.add("jle\t" + getNameIfNext());
+                assembler.add("jle\t" + getNameIfNext(randForCommand, numberIf));
                 break;
             case "<":
-                assembler.add("jge\t" + getNameIfNext());
+                assembler.add("jge\t" + getNameIfNext(randForCommand, numberIf));
                 break;
             case "<=":
-                assembler.add("jg\t" + getNameIfNext());
+                assembler.add("jg\t" + getNameIfNext(randForCommand, numberIf));
                 break;
             case "==":
-                assembler.add("jne\t" + getNameIfNext());
+                assembler.add("jne\t" + getNameIfNext(randForCommand, numberIf));
                 break;
             case "!=":
-                assembler.add("je\t" + getNameIfNext());
+                assembler.add("je\t" + getNameIfNext(randForCommand, numberIf));
                 break;
             case ">=":
-                assembler.add("jl\t" + getNameIfNext());
+                assembler.add("jl\t" + getNameIfNext(randForCommand, numberIf));
                 break;
         }
 
