@@ -89,6 +89,8 @@ public class Sema {
         String name = null;
         for (Node child : childFunc.getListChild()) {
             switch (child.getTokenType()) {
+                case BODY_THEN:
+                case BODY_ELSE:
                 case BODY:
                     bodyRec(child);
                     break;
@@ -174,6 +176,8 @@ public class Sema {
 
     public void commands(Node childCommand) throws CloneNotSupportedException {
         switch (childCommand.getTokenType()) {
+            case BODY_THEN:
+            case BODY_ELSE:
             case BODY:
                 bodyRec(childCommand);
                 break;
@@ -649,6 +653,36 @@ public class Sema {
                 break;
             }
         }
+
+// TODO: 08.05.2020 костыль который возможно не спасет
+        if (!checkLvl) {
+            nameLvl = (char) (lvl.charAt(1) - 1);
+            for (Variable variable : variableList) {
+                if (variable.getValue().charAt(1) == nameLvl) {
+                    checkLvl = true;
+                    break;
+                }
+            }
+        }
+        if (!checkLvl) {
+            nameLvl = (char) (lvl.charAt(1) - 2);
+            for (Variable variable : variableList) {
+                if (variable.getValue().charAt(1) == nameLvl) {
+                    checkLvl = true;
+                    break;
+                }
+            }
+        }
+        if (!checkLvl) {
+            nameLvl = (char) (lvl.charAt(1) - 3);
+            for (Variable variable : variableList) {
+                if (variable.getValue().charAt(1) == nameLvl) {
+                    checkLvl = true;
+                    break;
+                }
+            }
+        }
+//////////////////////////////////////////////////////////////////////////
         if (!checkLvl) {
             return null;
         }

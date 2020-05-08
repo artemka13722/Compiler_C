@@ -58,7 +58,7 @@ public class Parser {
             throw new RuntimeException("P: Ошибка. Должно быть  {");
         }
 
-        Node bodyNode = parseBody();
+        Node bodyNode = parseBody("def");
 
         Token<?> closeBraceToken = lexer.getToken();
         if (!closeBraceToken.match(TokenType.BRACE_CLOSE)) {
@@ -102,8 +102,24 @@ public class Parser {
         return result;
     }
 
-    public Node parseBody() {
-        Node result = new Node(TokenType.BODY);
+    public Node parseBody(String type) {
+
+        Node result;
+
+        switch (type){
+            case "def":
+                result = new Node(TokenType.BODY);
+                break;
+            case "then":
+                result = new Node(TokenType.BODY_THEN);
+                break;
+            case "else":
+                result = new Node(TokenType.BODY_ELSE);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + type);
+        }
+
         Token<?> closeBraceToken = lexer.peekToken();
         if (closeBraceToken.match(TokenType.BRACE_CLOSE)) {
             result.setLeft(new Node(TokenType.EMPTY));
@@ -238,7 +254,7 @@ public class Parser {
                     throw new RuntimeException("P: ожидалась открывающаяся фигурная скобка ветви if");
                 }
                 // ветвь then
-                result.setRight(parseBody());
+                result.setRight(parseBody("then"));
                 Token<?> closeBracketThenToken = lexer.getToken();
                 if (!closeBracketThenToken.match(TokenType.BRACE_CLOSE)) {
                     throw new RuntimeException("P: ожидалась закрывающаяся фигурная скобка ветви if");
@@ -253,7 +269,7 @@ public class Parser {
                     if (!openBraceElseToken.match(TokenType.BRACE_OPEN)) {
                         throw new RuntimeException("P: ожидалась открывающаяся фигурная скобка после else");
                     }
-                    result.setRight(parseBody());
+                    result.setRight(parseBody("else"));
                     Token<?> closeBraceElseToken = lexer.getToken();
                     if (!closeBraceElseToken.match(TokenType.BRACE_CLOSE)) {
                         throw new RuntimeException("P: ожидалась закрывающаяся фигурная скобка ветви else");
@@ -280,7 +296,7 @@ public class Parser {
                     throw new RuntimeException("P: ожидалась открывающаяся фигурная скобка тела цикла");
                 }
 
-                result.setRight(parseBody());
+                result.setRight(parseBody("def"));
 
                 Token<?> closeBraceWhileToken = lexer.getToken();
                 if (!closeBraceWhileToken.match(TokenType.BRACE_CLOSE)) {
@@ -356,7 +372,7 @@ public class Parser {
 
             Node assigment = new Node(assignToken);
             switch (lexer.peekToken().getTokenType()) {
-                case CHAR:
+                //case CHAR:
                 case NUMBER:
                 case NAME:
                     assigment.setRight(parseExpr());
@@ -577,6 +593,7 @@ public class Parser {
                 } else {
                     throw new RuntimeException("P: отсутсвует закрывающая скобка");
                 }
+            case LITERAL:
             case CHAR:
             case NUMBER:
                 result = new Node(token);

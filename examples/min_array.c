@@ -1,17 +1,27 @@
-int main(){
-
-    int n = 10;
-    int A[10] = {23,1,2,3,4,5,6,7,8,9};
-    int min;
-
-    min = A[0];
-
+int main () {
     int i = 0;
-    while(i < n){
-        if ( A[i] < min ){
-            min = A[i];
+    int j = 4;
+    int max = 0;
+    int min = 0;
+    int temp = 0;
+    int a[5] = {18, 2, 0, 11 , 5};
+    max = 0;
+    min = 100;
+    while(i <= j){
+        temp = a[i];
+        if(temp > max){
+            max = a[i];
         }
         i = i + 1;
     }
-    printf("\n Минимальный элемент %d", min);
+    i = 0;
+    while(i <= j){
+        temp = a[i];
+        if(temp < min){
+            min = a[i];
+        }
+        i = i + 1;
+    }
+    printf("min %d\n", min);
+    printf("max %d\n", max);
 }

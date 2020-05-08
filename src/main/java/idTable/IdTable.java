@@ -84,6 +84,8 @@ public class IdTable {
         addSubLevel(level);
         for (Node childFunc : child.getListChild()) {
             switch (childFunc.getTokenType()) {
+                case BODY_THEN:
+                case BODY_ELSE:
                 case BODY:
                     adding(childFunc);
                     break;
@@ -132,6 +134,8 @@ public class IdTable {
             if (childBody.getTokenType() == TokenType.COMMAND) {
                 for (Node childCommand : childBody.getListChild()) {
                     switch (childCommand.getTokenType()) {
+                        case BODY_THEN:
+                        case BODY_ELSE:
                         case BODY:
                             adding(childCommand);
                             break;

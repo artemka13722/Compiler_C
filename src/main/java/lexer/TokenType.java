@@ -15,7 +15,7 @@ public enum TokenType {
         LITERAL,
 
         BODY_FINCTION,
-        BODY_IF,
+        BODY_THEN,
         BODY_ELSE,
         BODY_WHILE,
 
