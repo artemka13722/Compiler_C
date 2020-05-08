@@ -35,6 +35,7 @@ public class Main {
         programTree.writeGraph("./tmp/graph1.dot");
 
         IdTable idTable = new IdTable(programTree);
+        System.out.println(idTable.getIdTable());
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
         sema.getTreeSema().writeGraph("./tmp/graph2.dot");

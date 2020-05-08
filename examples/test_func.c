@@ -1,5 +1,6 @@
 int square(int a){
-    return a*a;
+    a = a * a;
+    return a;
 }
 
 int main(){

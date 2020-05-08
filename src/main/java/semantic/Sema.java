@@ -141,9 +141,16 @@ public class Sema {
         return name;
     }
 
+
+    // TODO: 07.05.2020 есть проблема с уровнями 
     public void bodyRec(Node body) throws CloneNotSupportedException {
+
+
+
         setLevel(getLevel() + 1);
         addSubLevel(level);
+
+
         for (Node childBody : body.getListChild()) {
             bodyCommand(childBody);
         }
@@ -185,7 +192,7 @@ public class Sema {
                 break;
             case ASSIGNMENT:
                 assigment = true;
-                commandRec(childCommand);
+                assigment(childCommand);
                 break;
             case ARRAY:
                 array(childCommand);
@@ -202,6 +209,15 @@ public class Sema {
                 break;
             default:
                 commandRec(childCommand);
+        }
+    }
+
+    public void assigment(Node as) throws CloneNotSupportedException {
+        if(as.getFirstChildren().getTokenType().equals(TokenType.CALL_FUNCTION)){
+            assigment=false;
+            commandCallFunction(as);
+        } else {
+            commandRec(as);
         }
     }
 

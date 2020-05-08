@@ -4,7 +4,8 @@ int main(){
     int b;
     int tmp;
 
-   scanf("%d\n%d\n", a,b);
+   scanf("введите а %d", a);
+   scanf("введите b %d", b);
 
     while (a != b) {
             if (a > b) {

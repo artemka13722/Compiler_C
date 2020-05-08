@@ -11,7 +11,14 @@ import java.util.Map;
 public class CodeGen {
 
 
+
+
     private Integer numberLC;
+    private Integer numberIF = 0;
+
+
+    private Integer bodyCounter = 0;
+
     private Node tree;
     private Map<Integer, Character> subLevel;
     private Integer level;
@@ -23,7 +30,9 @@ public class CodeGen {
     private List<String> assembler = new ArrayList<>();
     String nameVariable = null;
     private String nameLC = "LC";
-    private boolean anyNames = false;
+
+    private boolean returned = false;
+    private String nameFunc = null;
 
     public CodeGen(Node tree) {
         this.subLevel = new HashMap<>();
@@ -49,6 +58,49 @@ public class CodeGen {
             numberLC++;
         }
     }
+
+
+
+    public String getNameIf() {
+        return ".if" + numberIF.toString();
+    }
+
+    public String getNameIfNext() {
+        Integer nextVal = numberIF + 1;
+        return ".if" + nextVal.toString();
+    }
+
+    public void setNameIf() {
+        if (numberIF == null) {
+            numberIF = 0;
+        } else {
+            numberIF++;
+        }
+    }
+
+
+    public String getNameWhile(Integer bodyCounter, Integer numberWhile) {
+        String val = bodyCounter.toString() + numberWhile;
+        return ".while" + val;
+        //return ".while" + numberWhile.toString();
+    }
+
+    public String getNameWhilenext(Integer bodyCounter, Integer numberWhile) {
+
+
+        String nextVal = bodyCounter.toString() + (numberWhile + 1);
+
+        //Integer nextVal = numberWhile + 1;
+        //return ".while" + nextVal.toString();
+        return ".while" + nextVal;
+    }
+
+
+        /*if (numberWhile == null) {
+            numberWhile = 0;
+        } else {
+            numberWhile++;
+        }*/
 
     public List<String> getAssembler() {
         return assembler;
@@ -107,11 +159,10 @@ public class CodeGen {
                     assemblerFunctionNmae(functionParam.getFirstChildren());
                     break;
                 case PARAMS_LIST:
-
-                    // полсе имени идёт добавление параметров
-
+                    setAssemblerFunctionParam(functionParam);
                     break;
                 case BODY:
+                    bodyCounter++;
                     functionBody(functionParam);
                     break;
             }
@@ -119,18 +170,35 @@ public class CodeGen {
         }
     }
 
-    public void assemblerFunctionNmae(Node functionName) {
-        String name = functionName.getTokenValue().toString();
+    public void setAssemblerFunctionParam(Node functionParam){
 
-        if (name.equals("main")) {
+        for(Node param : functionParam.getListChild()){
+            if(param.getTokenType().equals(TokenType.PARAM)){
+                String name = param.getTokenValue().toString();
+                setVar(name);
+                // добавление принимаемых переменных
+                assembler.add("movl\t%edi,\t-"+addressVar.get(name) + "(%rbp)");
+            }
+        }
+    }
+
+    public void assemblerFunctionNmae(Node functionName) {
+        nameFunc = functionName.getTokenValue().toString();
+
+        if (nameFunc.equals("main")) {
             assembler.add(".global main");
             assembler.add(".text");
             assembler.add(".type main, @function");
         }
 
-        assembler.add(name + ":");
+        assembler.add(nameFunc + ":");
         assembler.add("pushq   %rbp");
         assembler.add("movq    %rsp, %rbp");
+
+       /* if (nameFunc.equals("main")) {
+            assembler.add("subq    $2048, %rsp");
+        }*/
+
         assembler.add("subq    $2048, %rsp");
 
     }
@@ -141,24 +209,65 @@ public class CodeGen {
         for (Node body : functionBody.getListChild()) {
             switch (body.getTokenType()) {
                 case COMMAND:
-                    bodyCommand(body);
+                    assembler.addAll(bodyCommand(body));
                     break;
                 case EMPTY:
+
+/*                    if(!"main".equals(nameFunc)){
+                        if(!returned){
+                            assembler.add("nop");
+                        }
+                        assembler.add("popq\t%rbp");
+                        assembler.add("ret");
+                    } else {
+                        assembler.add("leave");
+                        assembler.add("ret");
+                    }*/
+
                     assembler.add("leave");
                     assembler.add("ret");
-
             }
         }
     }
 
-    public void bodyCommand(Node bodyCommand) {
+    public List<String> bodyRec(Node body){
 
-        setNameLC();
+        bodyCounter++;
+        List<String> asm = new ArrayList<>();
+        List<String> acm;
+
+        for (Node bodyRec : body.getListChild()) {
+            switch (bodyRec.getTokenType()) {
+                case COMMAND:
+
+                    acm = bodyCommand(bodyRec);
+
+                    if(acm != null){
+                        asm.addAll(acm);
+                    }
+                    break;
+               /* case EMPTY:
+                    returnAsm = false;
+                    break;*/
+            }
+        }
+        return asm;
+    }
+
+    public List<String> bodyCommand(Node bodyCommand) {
 
         TokenType com = null;
         boolean assigment = false;
         boolean literalCheck = false;
         boolean announcementVar = false;
+        boolean whileCommand = false;
+        boolean ifCommand = false;
+
+
+        //Integer randForCommand = (int )Math.random();
+
+        Integer randForCommand = bodyCounter;
+        Integer numberWhile = 0;
 
         List<String> commandAssembler = new ArrayList<>();
         List<String> literal = new ArrayList<>();
@@ -176,6 +285,9 @@ public class CodeGen {
                     if (announcementVar) {
                         setVar(nameVariable);
                         //announcementVar = false; нужно ли? так как в команде макс 1 объявление
+                    } else if(returned){
+                        // TODO: 06.05.2020 пока возвращает ток переменные, возможно добавлю арифметику
+                        commandAssembler.add("movl\t-"+addressVar.get(nameVariable) +"(%rbp),\t%eax");
                     }
                     break;
                 case ARRAY:
@@ -190,23 +302,76 @@ public class CodeGen {
                 case ARRAYASSIGMENT:
                     arrayAssigment(command,commandAssembler);
                     break;
+                case RETURN:
+                    returned = true;
+                    break;
                 case PRINTF:
                     literalCheck = true;
-
-                    commandAssembler.add("movl    $." + getNameLC() + ", %edi");
-                    commandAssembler.add("movl    $0, %eax");
-                    commandAssembler.add("call    printf");
-
+                    setNameLC();
+                    commandAssembler.add("call\tprintf");
                     break;
                 case PRINTF_BODY:
-                case SCANF_BODY:
                     commandAssembler.addAll(0, printfBody(command, literal, commandAssembler));
+                    break;
+                case SCANF_BODY:
+                    commandAssembler.addAll(0, scanfBody(command, literal, commandAssembler));
                     break;
                 case SCANF:
                     literalCheck = true;
-                    commandAssembler.add("movl    $." + getNameLC() + ", %edi");
-                    commandAssembler.add("movl    $0, %eax");
-                    commandAssembler.add("call    scanf");
+                    setNameLC();
+                    commandAssembler.add("call\tscanf");
+                    break;
+
+                    // цикл while
+                case WHILE:
+                    whileCommand = true;
+                    // разобраться с индексов
+                    commandAssembler.add("jmp\t" + getNameWhile(randForCommand, numberWhile));
+                    break;
+
+
+                case IF:
+                    ifCommand = true;
+                    break;
+
+
+                case CONDITION:
+                    if(whileCommand){
+                        conditionWhile(command, commandAssembler, randForCommand, numberWhile);
+                    }
+                    if(ifCommand){
+                        conditionIf(command, commandAssembler);
+                    }
+
+
+                    break;
+
+                case BODY:
+
+                    if(whileCommand){
+                        numberWhile++;
+                        commandAssembler.add(1, getNameWhile(randForCommand, numberWhile) + ":"); // КОСТЫЛЬ
+
+                        //returnAsm = true;
+                        List<String> test = bodyRec(command);
+
+                        commandAssembler.addAll(2, test);
+                        numberWhile++;
+                    }
+
+
+                    if(ifCommand){
+                        setNameIf();
+                        //commandAssembler.add(1, getNameIf() + ":"); // КОСТЫЛЬ
+
+                        //returnAsm = true;
+                        List<String> test = bodyRec(command);
+
+                        commandAssembler.addAll(test);
+                        commandAssembler.add( getNameIf() + ":");
+                    }
+
+
                     break;
 
                 case EMPTY:
@@ -214,13 +379,365 @@ public class CodeGen {
                     if (literalCheck) {
                         assembler.addAll(0, literal);
                     }
-                    assembler.addAll(commandAssembler);
-                    break;
+
+                    /*if(returnAsm){
+                        return commandAssembler;
+                    } else {
+                        assembler.addAll(commandAssembler);
+                    }*/
+                    return  commandAssembler;
+                    //break;
             }
+        }
+        return null;
+    }
+
+    public void conditionIf(Node condIf, List<String> assembler){
+
+        /*String var1 = null;
+        String var2 = null;
+        String signType = null;
+        int countCond = 0;
+
+
+        for(Node condCommand : condIf.getListChild()) {
+
+            if (condCommand.getListChild().size() > 0) {
+
+
+                if(countCond == 0){
+                    var1 = condCommand.getFirstChildren().getTokenValue().toString();
+                    countCond++;
+                } else {
+                    var2 = condCommand.getFirstChildren().getTokenValue().toString();
+                }
+            }
+
+
+            if(condCommand.getTokenType().equals(TokenType.SIGN)){
+                signType = condCommand.getTokenValue().toString();
+            }
+        }
+
+
+        assembler.add("movl\t-" + addressVar.get(var1) + "(%rbp), %eax");
+        assembler.add("cmpl\t-" + addressVar.get(var2) + "(%rbp), %eax");*/
+
+
+        String var1 = null;
+        String var2 = null;
+        String signType = null;
+        int countCond = 0;
+
+
+        boolean array1 = false;
+        boolean arrayNumeric1 = false;
+
+        String arrayName1 = null;
+        String arrayVarName1 = null;
+        String arrayValue1 = null;
+
+        boolean array2 = false;
+        boolean arrayNumeric2 = false;
+
+        String arrayName2 = null;
+        String arrayVarName2 = null;
+        String arrayValue2 = null;
+
+        for(Node condCommand : condIf.getListChild()) {
+
+            if(condCommand.getListChild().size() > 0){
+
+                if(countCond == 0){
+
+                    if(condCommand.getFirstChildren().getTokenType().equals(TokenType.ARRAY)){
+
+                        array1 = true;
+
+                        String arName = condCommand.getTokenValue().toString();
+                        String arValue = condCommand.getFirstChildren().getFirstChildren().getFirstChildren().getTokenValue().toString();
+
+
+                        if(isNumeric(arValue)){
+                            arrayNumeric1 = true;
+                            arrayValue1 = arName + arValue;
+                        } else {
+                            arrayName1 = arName;
+                            arrayVarName1 = arValue;
+                        }
+                    } else {
+                        var1 = condCommand.getFirstChildren().getTokenValue().toString();
+                    }
+                    countCond++;
+
+                } else {
+                    if(condCommand.getFirstChildren().getTokenType().equals(TokenType.ARRAY)){
+
+                        array2 = true;
+
+                        String arName = condCommand.getTokenValue().toString();
+                        String arValue = condCommand.getFirstChildren().getFirstChildren().getFirstChildren().getTokenValue().toString();
+
+
+                        if(isNumeric(arValue)){
+                            arrayNumeric2 = true;
+                            arrayValue2 = arName + arValue;
+                        } else {
+                            arrayName2 = arName;
+                            arrayVarName2 = arValue;
+                        }
+                    } else {
+                        var2 = condCommand.getFirstChildren().getTokenValue().toString();
+                    }
+                }
+            }
+            if(condCommand.getTokenType().equals(TokenType.SIGN)){
+                signType = condCommand.getTokenValue().toString();
+            }
+        }
+
+        // TODO: 07.05.2020  проверки на null если будут баги
+
+        if(isNumeric(var1)){
+
+            //assembler.add("movl\t$" +var1 + ",\t%eax");
+
+            if(!(array2 && !arrayNumeric2)){
+                assembler.add("movl\t$" +var1 + ",\t%eax");
+            }
+        } else {
+            if(array1){
+                if(arrayNumeric1){
+                    assembler.add("movl\t-" + addressVar.get(arrayValue1) + "(%rbp),\t%eax");
+                } else {
+                    assembler.add("movl    -"+ addressVar.get(arrayVarName1)+"(%rbp), %eax");
+                    assembler.add("cltd");
+
+                    List<String> addresArray = arrays.get(arrayName1);
+                    arrayName1 = arrayName1 + (addresArray.size()-1);
+
+                    assembler.add("movl    -"+ addressVar.get(arrayName1) +"(%rbp,%rax,4), %eax");
+                }
+            } else {
+
+                if(!(array2 && !arrayNumeric2)){
+                    assembler.add("movl\t-" + addressVar.get(var1) + "(%rbp),\t%eax");
+                }
+
+                //assembler.add("movl\t-" + addressVar.get(var1) + "(%rbp),\t%eax");
+            }
+        }
+        if(isNumeric(var2)){
+            assembler.add("cmpl\t$" +var2 + ",\t%eax");
+        } else {
+
+            if(array2){
+
+                if(arrayNumeric2){
+                    assembler.add("cmpl\t-" + addressVar.get(arrayValue2) + "(%rbp),\t%eax");
+                } else {
+
+                    assembler.add("movl    -"+ addressVar.get(arrayVarName2)+"(%rbp), %eax");
+                    assembler.add("cltd");
+
+                    List<String> addresArray = arrays.get(arrayName2);
+                    arrayName2 = arrayName2 + (addresArray.size()-1);
+
+                    assembler.add("movl    -"+ addressVar.get(arrayName2) +"(%rbp,%rax,4), %eax");
+
+                    assembler.add("cmpl\t%eax,\t-" + addressVar.get(var1) + "(%rbp)");
+                }
+            } else {
+                assembler.add("cmpl\t-"+ addressVar.get(var2)+ "(%rbp),\t%eax");
+            }
+        }
+
+
+        // возможно не надо следующий
+
+        switch (signType){
+            case ">":
+                assembler.add("jle\t" + getNameIfNext());
+                break;
+            case "<":
+                assembler.add("jge\t" + getNameIfNext());
+                break;
+            case "<=":
+                assembler.add("jg\t" + getNameIfNext());
+                break;
+            case "==":
+                assembler.add("jne\t" + getNameIfNext());
+                break;
+            case "!=":
+                assembler.add("je\t" + getNameIfNext());
+                break;
+            case ">=":
+                assembler.add("jl\t" + getNameIfNext());
+                break;
+        }
+
+
+    }
+
+
+    // TODO: 07.05.2020 если будет время оптимизировать эту хрень, но вроде работает
+    public void conditionWhile(Node cond, List<String> assembler, Integer randForCommand, Integer numberWhile){
+        
+        String var1 = null;
+        String var2 = null;
+        String signType = null;
+        int countCond = 0;
+
+
+        boolean array1 = false;
+        boolean arrayNumeric1 = false;
+
+        String arrayName1 = null;
+        String arrayVarName1 = null;
+        String arrayValue1 = null;
+
+        boolean array2 = false;
+        boolean arrayNumeric2 = false;
+
+        String arrayName2 = null;
+        String arrayVarName2 = null;
+        String arrayValue2 = null;
+
+        for(Node condCommand : cond.getListChild()){
+
+            if(condCommand.getListChild().size() > 0){
+
+                if(countCond == 0){
+
+                    if(condCommand.getFirstChildren().getTokenType().equals(TokenType.ARRAY)){
+
+                        array1 = true;
+
+                        String arName = condCommand.getTokenValue().toString();
+                        String arValue = condCommand.getFirstChildren().getFirstChildren().getFirstChildren().getTokenValue().toString();
+
+
+                        if(isNumeric(arValue)){
+                            arrayNumeric1 = true;
+                            arrayValue1 = arName + arValue;
+                        } else {
+                            arrayName1 = arName;
+                            arrayVarName1 = arValue;
+                        }
+                    } else {
+                        var1 = condCommand.getFirstChildren().getTokenValue().toString();
+                    }
+                    countCond++;
+
+                } else {
+                    if(condCommand.getFirstChildren().getTokenType().equals(TokenType.ARRAY)){
+
+                        array2 = true;
+
+                        String arName = condCommand.getTokenValue().toString();
+                        String arValue = condCommand.getFirstChildren().getFirstChildren().getFirstChildren().getTokenValue().toString();
+
+
+                        if(isNumeric(arValue)){
+                            arrayNumeric2 = true;
+                            arrayValue2 = arName + arValue;
+                        } else {
+                            arrayName2 = arName;
+                            arrayVarName2 = arValue;
+                        }
+                    } else {
+                        var2 = condCommand.getFirstChildren().getTokenValue().toString();
+                    }
+                }
+            }
+            if(condCommand.getTokenType().equals(TokenType.SIGN)){
+                signType = condCommand.getTokenValue().toString();
+            }
+        }
+
+        // TODO: 07.05.2020  проверки на null если будут баги
+
+        assembler.add(getNameWhile(randForCommand, numberWhile) + ":");
+
+        if(isNumeric(var1)){
+
+            //assembler.add("movl\t$" +var1 + ",\t%eax");
+
+            if(!(array2 && !arrayNumeric2)){
+                assembler.add("movl\t$" +var1 + ",\t%eax");
+            }
+        } else {
+            if(array1){
+                if(arrayNumeric1){
+                    assembler.add("movl\t-" + addressVar.get(arrayValue1) + "(%rbp),\t%eax");
+                } else {
+                    assembler.add("movl    -"+ addressVar.get(arrayVarName1)+"(%rbp), %eax");
+                    assembler.add("cltd");
+
+                    List<String> addresArray = arrays.get(arrayName1);
+                    arrayName1 = arrayName1 + (addresArray.size()-1);
+
+                    assembler.add("movl    -"+ addressVar.get(arrayName1) +"(%rbp,%rax,4), %eax");
+                }
+            } else {
+
+                if(!(array2 && !arrayNumeric2)){
+                    assembler.add("movl\t-" + addressVar.get(var1) + "(%rbp),\t%eax");
+                }
+
+                //assembler.add("movl\t-" + addressVar.get(var1) + "(%rbp),\t%eax");
+            }
+        }
+        if(isNumeric(var2)){
+            assembler.add("cmpl\t$" +var2 + ",\t%eax");
+        } else {
+
+            if(array2){
+
+                if(arrayNumeric2){
+                    assembler.add("cmpl\t-" + addressVar.get(arrayValue2) + "(%rbp),\t%eax");
+                } else {
+
+                    assembler.add("movl    -"+ addressVar.get(arrayVarName2)+"(%rbp), %eax");
+                    assembler.add("cltd");
+
+                    List<String> addresArray = arrays.get(arrayName2);
+                    arrayName2 = arrayName2 + (addresArray.size()-1);
+
+                    assembler.add("movl    -"+ addressVar.get(arrayName2) +"(%rbp,%rax,4), %eax");
+
+                    assembler.add("cmpl\t%eax,\t-" + addressVar.get(var1) + "(%rbp)");
+                }
+            } else {
+                assembler.add("cmpl\t-"+ addressVar.get(var2)+ "(%rbp),\t%eax");
+            }
+        }
+
+
+        switch (signType){
+            case ">":
+                assembler.add("jg\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
+            case "<":
+                assembler.add("jl\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
+            case "<=":
+                assembler.add("jle\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
+            case "==":
+                assembler.add("je\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
+            case "!=":
+                assembler.add("jne\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
+            case ">=":
+                assembler.add("jge\t" + getNameWhilenext(randForCommand, numberWhile));
+                break;
         }
     }
 
     // TODO: 06.05.2020 возможно заблокировать объявление массива буквой
+    // todo сделать объявление массивов с нуля
     public List<String> createArray(Node array){
 
         int countArray = 0;
@@ -294,8 +811,66 @@ public class CodeGen {
             }
         }
     }
+    
+    public void assigment(Node number, List<String> commandAssembler){
 
-    public void assigment(Node number, List<String> commandAssembler) {
+        List<String> arguments = new ArrayList<>();
+        String nameFunction = null;
+
+        try {
+            if(number.getFirstChildren().getTokenType().equals(TokenType.CALL_FUNCTION)){
+                for(Node args : number.getFirstChildren().getListChild()){
+                    switch (args.getTokenType()){
+                        case NAME:
+                            nameFunction = args.getTokenValue().toString();
+                            break;
+                        // TODO: 06.05.2020 почему то нет типов аргументов в семантике, если починю то ошибка тут
+                        case ARG_LIST:
+                            arguments = argList(args);
+                            break;
+                    }
+                }
+
+
+                if(arguments == null){
+                    commandAssembler.add("movl\t$0,\t%eax");
+                    commandAssembler.add("call\t"+ nameFunction);
+                    commandAssembler.add("movl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+
+
+                    // TODO: 06.05.2020 не забыть про переменные
+                } else if(arguments.size() == 1){
+                    commandAssembler.add("movl\t$"+ arguments.get(0)+  ",\t%edi");
+                    commandAssembler.add("call\t"+ nameFunction);
+                    commandAssembler.add("movl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+                }
+
+            } else {
+                assigmentElse(number,commandAssembler);
+            }
+        } catch (IndexOutOfBoundsException e){
+            assigmentElse(number,commandAssembler);
+        }
+    }
+
+    public List<String> argList(Node argList){
+
+        List<String> arguments = new ArrayList<>();
+
+        for(Node arg :argList.getListChild()){
+            switch (arg.getTokenType()){
+                case EMPTY:
+                    return null;
+                case NUMBER:
+                case NAME:
+                    arguments.add(arg.getTokenValue().toString());
+                    break;
+            }
+        }
+        return arguments;
+    }
+
+    public void assigmentElse(Node number, List<String> commandAssembler) {
         if (number.getListChild().size() > 0) {
             for (Node numRec : number.getListChild()) {
                 assigment(numRec, commandAssembler);
@@ -331,7 +906,18 @@ public class CodeGen {
                     }
                     break;
                 case ASSIGNMENT:
-                    commandAssembler.add("movl    $" + number.getTokenValue() + ", -" + addressVar.get(nameVariable) + "(%rbp)");
+
+                    switch (number.getTokenType()){
+                        case NUMBER:
+                            commandAssembler.add("movl    $" + number.getTokenValue() + ", -" + addressVar.get(nameVariable) + "(%rbp)");
+                            break;
+                        case NAME:
+                            String valueAsName = number.getTokenValue().toString();
+                            commandAssembler.add("movl\t-" + addressVar.get(valueAsName) + "(%rbp), %eax");
+                            commandAssembler.add("movl\t%eax,\t-" + addressVar.get(nameVariable) + "(%rbp)");
+                            break;
+                    }
+
                     break;
                 case PLUS:
                     if (node != 1) {
@@ -349,10 +935,10 @@ public class CodeGen {
                         }
 
                         if (isNumeric(num2)) {
-                            commandAssembler.add("movl    $" + num2 + ", %edx");
+                            commandAssembler.add("addl    $" + num2 + ", %edx");
                         } else {
                             if (num2 != nameVariable) {
-                                commandAssembler.add("movl    -" + addressVar.get(num2) + "(%rbp), %edx");
+                                commandAssembler.add("addl    -" + addressVar.get(num2) + "(%rbp), %edx");
                             }
                         }
                         commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
@@ -393,6 +979,46 @@ public class CodeGen {
         }
     }
 
+    public List<String> scanfBody(Node command, List<String> literal, List<String> commandAsm) {
+
+        literal.add("." + getNameLC() + ":");
+        literal.add(".string \"" + command.getFirstChildren().getTokenValue().toString() + "\"");
+
+        List<String> names = new ArrayList<>();
+        List<String> asm = new ArrayList<>();
+
+        if (command.getListChild().size() > 1) {
+            for (Node printfBody : command.getListChild()) {
+                switch (printfBody.getTokenType()) {
+                    case INT:
+                    case CHAR:
+                    case DOUBLE:
+                        String name = printfBody.getFirstChildren().getTokenValue().toString();
+                        names.add(name);
+                        break;
+                }
+            }
+
+        }
+
+        if (names.size() == 1) {
+            commandAsm.add(0,"xorl\t%eax,\t%eax");
+            commandAsm.add(1,"movq\t$." + getNameLC() + ",\t%rdi");
+            commandAsm.add( 2,"leaq\t-" + addressVar.get(names.get(0)) + "(%rbp),\t%rsi");
+        } else if (names.size() > 1) {
+
+            /*for (int i = 0; i < names.size(); i++) {
+                asm.add("movl    -" + addressVar.get(names.get(i)) + "(%rbp), %esi");
+                if (i + 1 != names.size()) {
+                    asm.add("$." + getNameLC() + ", %edi");
+                    asm.add("movl    $0, %eax");
+                    asm.add("call    printf");
+                }
+            }*/
+        }
+        return asm;
+    }
+
     public List<String> printfBody(Node command, List<String> literal, List<String> commandAsm) {
 
         literal.add("." + getNameLC() + ":");
@@ -416,18 +1042,20 @@ public class CodeGen {
         }
 
         if (names.size() == 1) {
-            commandAsm.add(0, "movl    -" + addressVar.get(names.get(0)) + "(%rbp), %eax");
-            commandAsm.add(1, "movl    %eax, %esi");
+            commandAsm.add(0, "movl\t-" + addressVar.get(names.get(0)) + "(%rbp),\t%eax");
+            commandAsm.add(1,"movl\t%eax,\t%esi");
+            commandAsm.add(2,"movl\t$." + getNameLC() + ",\t%edi");
+
         } else if (names.size() > 1) {
 
-            for (int i = 0; i < names.size(); i++) {
+            /*for (int i = 0; i < names.size(); i++) {
                 asm.add("movl    -" + addressVar.get(names.get(i)) + "(%rbp), %esi");
                 if (i + 1 != names.size()) {
                     asm.add("$." + getNameLC() + ", %edi");
                     asm.add("movl    $0, %eax");
                     asm.add("call    printf");
                 }
-            }
+            }*/
         }
         return asm;
     }
