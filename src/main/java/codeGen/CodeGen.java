@@ -1024,6 +1024,7 @@ public class CodeGen {
         if (command.getListChild().size() > 1) {
             for (Node printfBody : command.getListChild()) {
                 switch (printfBody.getTokenType()) {
+
                     case INT:
                     case CHAR:
                     case DOUBLE:
@@ -1035,10 +1036,20 @@ public class CodeGen {
 
         }
 
+        switch (names.size()){
+            case 0:
+                commandAsm.add(0,"movl\t$." + getNameLC() + ",\t%edi");
+                break;
+            case 1:
+                commandAsm.add(0, "movl\t-" + addressVar.get(names.get(0)) + "(%rbp),\t%eax");
+                commandAsm.add(1,"movl\t%eax,\t%esi");
+                commandAsm.add(2,"movl\t$." + getNameLC() + ",\t%edi");
+                break;
+            default:
+        }
+
         if (names.size() == 1) {
-            commandAsm.add(0, "movl\t-" + addressVar.get(names.get(0)) + "(%rbp),\t%eax");
-            commandAsm.add(1,"movl\t%eax,\t%esi");
-            commandAsm.add(2,"movl\t$." + getNameLC() + ",\t%edi");
+
 
         } else if (names.size() > 1) {
 
