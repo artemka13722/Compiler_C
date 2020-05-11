@@ -167,16 +167,19 @@ public class Parser {
                             result.setRight(parseArray());
                             break;
                         case ASSIGNMENT:
+                            Node assigment = new Node(openBracetToken);
                             //result.setLeft(new Node(whatEver));
                             lexer.getToken();
+                            Token strstr = lexer.peekToken();
+                            if(strstr.match(TokenType.STRSTR)){
+                                assigment = new Node(lexer.peekToken());
+                                parseStrStr(assigment);
+                            } else {
+                                assigment.setLeft(parseExpr());
+                            }
+                            result.setRight(assigment);
                            /* result.setRight(new Node(openBracetToken));
                             result.setRight(parseExpr());*/
-
-
-                            Node assigment = new Node(openBracetToken);
-                            assigment.setLeft(parseExpr());
-                            result.setRight(assigment);
-
                             break;
                     }
                 } else {
@@ -192,7 +195,12 @@ public class Parser {
                     case ASSIGNMENT:
                         result.setLeft(new Node(whatEver));
                         Node assigment = new Node(assignToken);
-                        assigment.setLeft(parseExpr());
+                        if(lexer.peekToken().match(TokenType.STRSTR)){
+                            assigment = new Node(lexer.peekToken());
+                            parseStrStr(assigment);
+                        } else {
+                            assigment.setLeft(parseExpr());
+                        }
                         result.setRight(assigment);
                         break;
                     case BRACET_OPEN:
@@ -308,6 +316,44 @@ public class Parser {
         }
         result.setRight(new Node(TokenType.EMPTY));
         return result;
+    }
+
+
+    private void parseStrStr(Node assigment){
+
+
+        lexer.getToken();
+
+        Token openBracketToken = lexer.getToken();
+        if(!openBracketToken.match(TokenType.BRACKET_OPEN)){
+            throw new RuntimeException("ошибка ( скобки");
+        }
+        Token name1Token = lexer.getToken();
+
+        if(!name1Token.match(TokenType.NAME)){
+            throw new RuntimeException("ошибка первого аргумента");
+        }
+
+        assigment.setRight(new Node(name1Token));
+
+        Token commaToken = lexer.getToken();
+
+        if(!commaToken.match(TokenType.COMMA)){
+            throw new RuntimeException("ошибка запятая между аргументами аргумента");
+        }
+
+        Token name2Token = lexer.getToken();
+
+        if(!name2Token.match(TokenType.NAME)){
+            throw new RuntimeException("ошибка второго аргумента");
+        }
+
+        assigment.setRight(new Node(name2Token));
+
+        Token closeBracketToken = lexer.getToken();
+        if(!closeBracketToken.match(TokenType.BRACKET_CLOSE)){
+            throw new RuntimeException("ошибка ) скобки");
+        }
     }
 
     private Node parseInOut(Token out) {

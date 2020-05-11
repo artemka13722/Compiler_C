@@ -3,6 +3,9 @@ package lexer;
 public enum TokenType {
 
         //преобразования
+
+        STRSTR,
+
         INTTOCHAR,
         INTTODOUBLE,
 

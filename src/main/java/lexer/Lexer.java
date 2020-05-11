@@ -213,6 +213,9 @@ public class Lexer {
             case "char":
                 result = new Token<String>(TokenType.CHAR, buffer.getRow(), buffer.getCol());
                 break;
+            case "strstr":
+                result = new Token<Object>(TokenType.STRSTR, buffer.getRow(), buffer.getCol());
+                break;
             case "printf":
                 result = new Token<Object>(TokenType.PRINTF, buffer.getRow(), buffer.getCol());
                 break;
