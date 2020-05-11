@@ -1045,7 +1045,14 @@ public class CodeGen {
                 commandAsm.add(1,"movl\t%eax,\t%esi");
                 commandAsm.add(2,"movl\t$." + getNameLC() + ",\t%edi");
                 break;
+            case 2:
+                commandAsm.add(0, "movl\t-" + addressVar.get(names.get(1)) + "(%rbp),\t%edx");
+                commandAsm.add(1, "movl\t-" + addressVar.get(names.get(0)) + "(%rbp),\t%eax");
+                commandAsm.add(2,"movl\t%eax,\t%esi");
+                commandAsm.add(3,"movl\t$." + getNameLC() + ",\t%edi");
+                break;
             default:
+                System.out.println("Такое количество параметров вывода не завезли");
         }
 
         if (names.size() == 1) {
