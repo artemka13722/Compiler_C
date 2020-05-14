@@ -122,6 +122,7 @@ public class CodeGen {
         if (tree != null) {
             for (Node child : tree.getListChild()) {
                 if (child.getTokenType() == TokenType.FUNCTION) {
+                    returned = false;
                     functionParam(child);
                 }
             }
@@ -716,38 +717,60 @@ public class CodeGen {
                 }
 
 
-                if(arguments == null){
-                    commandAssembler.add("\tmovl\t$0,\t%eax");
-                    commandAssembler.add("\tcall\t"+ nameFunction);
-                    commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
-
-
-                    // TODO: 06.05.2020 не забыть про переменные
-                } else if(arguments.size() == 1){
-
-
-                    if(isNumeric(arguments.get(0))){
-                        commandAssembler.add("\tmovl\t$"+ arguments.get(0)+  ",\t%edi");
+                switch (arguments.size()){
+                    case 0:
+                        commandAssembler.add("\tmovl\t$0,\t%eax");
                         commandAssembler.add("\tcall\t"+ nameFunction);
                         commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
-                    } else {
-                        commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(0)) + "(%rbp), %eax");
-                        commandAssembler.add("\tmovl\t%eax, %edi");
+                        break;
+                    case 1:
+                        if(isNumeric(arguments.get(0))){
+                            commandAssembler.add("\tmovl\t$"+ arguments.get(0)+  ",\t%edi");
+                            commandAssembler.add("\tcall\t"+ nameFunction);
+                            commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+                        } else {
+                            commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(0)) + "(%rbp), %eax");
+                            commandAssembler.add("\tmovl\t%eax, %edi");
+                            commandAssembler.add("\tcall\t"+ nameFunction);
+                            commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+                        }
+                        break;
+                    case 2:
+
+                        int numCount = 0;
+
+                        if(isNumeric(arguments.get(0))){
+
+                            commandAssembler.add("\tmovl\t$" + arguments.get(0) + ", %edi");
+                            numCount++;
+
+                        } else {
+                            commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(0)) + "(%rbp), %eax");
+                            commandAssembler.add("\tmovl\t%eax, %edi");
+                        }
+
+                        if(isNumeric(arguments.get(1))){
+                            commandAssembler.add("\tmovl\t$" + arguments.get(1) + ", %esi");
+                            numCount++;
+                        } else {
+
+                            commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(1)) + "(%rbp), %eax");
+                            commandAssembler.add("\tmovl\t%eax, %esi");
+                        }
+
+
+                        switch (numCount){
+                            case 0:
+                                commandAssembler.add("\tmovl\t%eax, %esi");
+                                commandAssembler.add("\tmovl\t%eax, %edi");
+                                break;
+                        }
+
                         commandAssembler.add("\tcall\t"+ nameFunction);
                         commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
-                    }
-
-
-
-                } else if(arguments.size() == 2){
-
-
-                    // 2 аргумента
-
-                } else if(arguments.size() > 2){
-
-                    System.out.println("Передввать можно не более двух аргументов");
-
+                        break;
+                    default:
+                        System.out.println("Передввать можно не более двух аргументов");
                 }
 
             } else {
