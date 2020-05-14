@@ -158,13 +158,10 @@ public class CodeGen {
 
         for(Node param : functionParam.getListChild()){
             if(param.getTokenType().equals(TokenType.PARAM)){
-
-                // TODO: 14.05.2020 ну мыж вроде больше двух не отправляем пока
                 switch (param.getFirstChildren().getFirstChildren().getTokenType()){
                     case INT:
                         String name = param.getTokenValue().toString();
                         setVar(name, TokenType.INT);
-                        // добавление принимаемых переменных
                         names.add(name);
                         break;
                     case CHAR:
@@ -173,26 +170,27 @@ public class CodeGen {
                         break;
                 }
             }
+        }
 
-            if(names.size() > 0){
-                for(int i = 0; i < names.size(); i++){
-                    switch (i){
-                        case 0:
-                            assembler.add("\tmovl\t%edi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
-                            break;
-                        case 1:
-                            assembler.add("\tmovl\t%esi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
-                            break;
-                        case 2:
-                            assembler.add("\tmovl\t%edx,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
-                            break;
-                        default:
-                            System.out.println("Входных параметров функции должно быть не более 3");
-                            System.exit(0);
-                    }
+        if(names.size() > 0){
+            for(int i = 0; i < names.size(); i++){
+                switch (i){
+                    case 0:
+                        assembler.add("\tmovl\t%edi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                        break;
+                    case 1:
+                        assembler.add("\tmovl\t%esi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                        break;
+                    case 2:
+                        assembler.add("\tmovl\t%edx,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                        break;
+                    default:
+                        System.out.println("Входных параметров функции должно быть не более 3");
+                        System.exit(0);
                 }
             }
         }
+
     }
 
     public void assemblerFunctionNmae(Node functionName) {
