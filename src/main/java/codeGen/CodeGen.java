@@ -154,6 +154,8 @@ public class CodeGen {
 
     public void setAssemblerFunctionParam(Node functionParam){
 
+        List<String> names = new ArrayList<>();
+
         for(Node param : functionParam.getListChild()){
             if(param.getTokenType().equals(TokenType.PARAM)){
 
@@ -163,16 +165,32 @@ public class CodeGen {
                         String name = param.getTokenValue().toString();
                         setVar(name, TokenType.INT);
                         // добавление принимаемых переменных
-                        assembler.add("movl\t%edi,\t-"+addressVar.get(name) + "(%rbp)");
+                        names.add(name);
                         break;
                     case CHAR:
                         System.out.println("Нельзя принимать char");
                         System.exit(0);
                         break;
                 }
+            }
 
-
-
+            if(names.size() > 0){
+                for(int i = 0; i < names.size(); i++){
+                    switch (i){
+                        case 0:
+                            assembler.add("\tmovl\t%edi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                            break;
+                        case 1:
+                            assembler.add("\tmovl\t%esi,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                            break;
+                        case 2:
+                            assembler.add("\tmovl\t%edx,\t-"+addressVar.get(names.get(i)) + "(%rbp)");
+                            break;
+                        default:
+                            System.out.println("Входных параметров функции должно быть не более 3");
+                            System.exit(0);
+                    }
+                }
             }
         }
     }
