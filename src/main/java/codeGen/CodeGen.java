@@ -1087,90 +1087,65 @@ public class CodeGen {
 
                     break;
                 case MINUS:
-                    if (node != 1) {
-
-                        String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
-                        String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
-
-
-                        if (isNumeric(num1)) {
-                            commandAssembler.add("movl    $" + num1 + ", %edx");
-                        } else {
-                            if (num1 != nameVariable) {
-                                commandAssembler.add("movl    -" + addressVar.get(num1) + "(%rbp), %edx");
-                            }
-                        }
-
-                        if (isNumeric(num2)) {
-                            commandAssembler.add("subl    $" + num2 + ", %edx");
-                        } else {
-                            if (num2 != nameVariable) {
-                                commandAssembler.add("subl    -" + addressVar.get(num2) + "(%rbp), %edx");
-                            }
-                        }
-                        commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
-                        node++;
-                    }
-
-
-                    break;
                 case PLUS:
-                    if (node != 1) {
-
-                        String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
-                        String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
-
-
-                        if (isNumeric(num1)) {
-                            commandAssembler.add("movl    $" + num1 + ", %edx");
-                        } else {
-                            if (num1 != nameVariable) {
-                                commandAssembler.add("movl    -" + addressVar.get(num1) + "(%rbp), %edx");
-                            }
-                        }
-
-                        if (isNumeric(num2)) {
-                            commandAssembler.add("addl    $" + num2 + ", %edx");
-                        } else {
-                            if (num2 != nameVariable) {
-                                commandAssembler.add("addl    -" + addressVar.get(num2) + "(%rbp), %edx");
-                            }
-                        }
-                        commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
-                        node++;
-                    }
-                    break;
                 case MULTIPLICATION:
-                    if (node != 1) {
-
-                        String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
-                        String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
-
-
-                        if (isNumeric(num1)) {
-                            commandAssembler.add("movl    $" + num1 + ", %edx");
-                        } else {
-                            if (num1 != nameVariable) {
-                                commandAssembler.add("movl    -" + addressVar.get(num1) + "(%rbp), %edx");
-                            }
-                        }
-
-                        if (isNumeric(num2)) {
-                            commandAssembler.add("movl    $" + num2 + ", %eax");
-                        } else {
-                            if (num2 != nameVariable) {
-                                commandAssembler.add("movl    -" + addressVar.get(num2) + "(%rbp), %eax");
-                            }
-                        }
-                        commandAssembler.add("mull    %edx");
-                        commandAssembler.add("movl    %eax, -" + addressVar.get(nameVariable) + "(%rbp)");
-                        node++;
-                    }
+                    assemblerMath(number, commandAssembler, number.getParent().getParent().getTokenType());
                     break;
                 case DIVISION:
                     // разобраться с делением
                     break;
             }
+        }
+    }
+
+    public void assemblerMath(Node number, List<String> commandAssembler, TokenType type){
+        if (node != 1) {
+
+            String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
+            String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
+
+            if (isNumeric(num1)) {
+                commandAssembler.add("movl    $" + num1 + ", %edx");
+            } else {
+                if (num1 != nameVariable) {
+                    commandAssembler.add("movl    -" + addressVar.get(num1) + "(%rbp), %edx");
+                }
+            }
+
+            switch (type){
+                case MINUS:
+                    if (isNumeric(num2)) {
+                        commandAssembler.add("subl    $" + num2 + ", %edx");
+                    } else {
+                        if (num2 != nameVariable) {
+                            commandAssembler.add("subl    -" + addressVar.get(num2) + "(%rbp), %edx");
+                        }
+                    }
+                    commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
+                    break;
+                case PLUS:
+                    if (isNumeric(num2)) {
+                        commandAssembler.add("addl    $" + num2 + ", %edx");
+                    } else {
+                        if (num2 != nameVariable) {
+                            commandAssembler.add("addl    -" + addressVar.get(num2) + "(%rbp), %edx");
+                        }
+                    }
+                    commandAssembler.add("movl    %edx, -" + addressVar.get(nameVariable) + "(%rbp)");
+                    break;
+                case MULTIPLICATION:
+                    if (isNumeric(num2)) {
+                        commandAssembler.add("movl    $" + num2 + ", %eax");
+                    } else {
+                        if (num2 != nameVariable) {
+                            commandAssembler.add("movl    -" + addressVar.get(num2) + "(%rbp), %eax");
+                        }
+                    }
+                    commandAssembler.add("mull    %edx");
+                    commandAssembler.add("movl    %eax, -" + addressVar.get(nameVariable) + "(%rbp)");
+                    break;
+            }
+            node++;
         }
     }
 
