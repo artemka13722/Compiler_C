@@ -274,6 +274,9 @@ public class CodeGen {
                     nameVariable = command.getFirstChildren().getTokenValue().toString();
                     if(announcementVar){
                         setVar(nameVariable, TokenType.CHAR);
+                    } else if(returned){
+                        System.out.println("Возкращать можно только int");
+                        System.exit(0);
                     }
 
                     break;
@@ -284,11 +287,11 @@ public class CodeGen {
                     } else if(returned){
 
                         // TODO: 06.05.2020 пока возвращает ток переменные, возможно добавлю арифметику
-                        if(!(nameVariable == null)){
-                            commandAssembler.add("\tmovl\t-"+addressVar.get(nameVariable) +"(%rbp),\t%eax");
+
+                        if(isNumeric(nameVariable)){
+                            commandAssembler.add("\tmovl\t$" + nameVariable + ", %eax");
                         } else {
-                            System.out.println("Возкращать можно только переменные");
-                            System.exit(0);
+                            commandAssembler.add("\tmovl\t-"+addressVar.get(nameVariable) +"(%rbp),\t%eax");
                         }
                     }
                     break;
@@ -705,9 +708,21 @@ public class CodeGen {
 
                     // TODO: 06.05.2020 не забыть про переменные
                 } else if(arguments.size() == 1){
-                    commandAssembler.add("\tmovl\t$"+ arguments.get(0)+  ",\t%edi");
-                    commandAssembler.add("\tcall\t"+ nameFunction);
-                    commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+
+
+                    if(isNumeric(arguments.get(0))){
+                        commandAssembler.add("\tmovl\t$"+ arguments.get(0)+  ",\t%edi");
+                        commandAssembler.add("\tcall\t"+ nameFunction);
+                        commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+                    } else {
+                        commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(0)) + "(%rbp), %eax");
+                        commandAssembler.add("\tmovl\t%eax, %edi");
+                        commandAssembler.add("\tcall\t"+ nameFunction);
+                        commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
+                    }
+
+
+
                 } else if(arguments.size() == 2){
 
 

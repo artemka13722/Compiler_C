@@ -1,6 +1,7 @@
 package application;
 
 import buffer.Buffer;
+import codeGen.CodeGen;
 import idTable.IdTable;
 import lexer.Lexer;
 import lexer.Token;
@@ -10,6 +11,7 @@ import parser.Parser;
 import semantic.Sema;
 
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URLEncoder;
@@ -65,7 +67,7 @@ public class NewMain {
     }
 
     // в процессе
-    public static void compile(Reader fileReader) throws CloneNotSupportedException {
+    public static void compile(Reader fileReader) throws CloneNotSupportedException, IOException {
         Buffer buffer = new Buffer(fileReader);
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
@@ -74,10 +76,33 @@ public class NewMain {
         IdTable idTable = new IdTable(programTree);
 
         Sema sema = new Sema(programTree, idTable.getIdTable());
+        getAstParent(sema.getTreeSema());
+
+        CodeGen codeGen = new CodeGen(programTree);
+
+        FileWriter writer = new FileWriter("./asm.txt");
+        for(String str: codeGen.getAssembler()) {
+            writer.write(str + System.lineSeparator());
+        }
+        writer.close();
     }
 
-    public static void dumpAsm(Reader fileReader) {
-        // в процессе
+    public static void dumpAsm(Reader fileReader) throws CloneNotSupportedException {
+        Buffer buffer = new Buffer(fileReader);
+        Lexer lexer = new Lexer(buffer);
+        Parser parser = new Parser(lexer);
+        Node programTree = parser.parseProgram();
+
+        IdTable idTable = new IdTable(programTree);
+
+        Sema sema = new Sema(programTree, idTable.getIdTable());
+        getAstParent(sema.getTreeSema());
+
+        CodeGen codeGen = new CodeGen(programTree);
+
+        for (int i = 0; i < codeGen.getAssembler().size(); i++) {
+            System.out.println(codeGen.getAssembler().get(i));
+        }
     }
 
     public static void dumpAst(Reader fileReader, String outAst, String outSemaAst) throws CloneNotSupportedException, IOException {
@@ -150,5 +175,14 @@ public class NewMain {
 
         String encodedUrl = URLEncoder.encode(test, "UTF-8").replace("+", "%20");
         System.out.println("https://dreampuf.github.io/GraphvizOnline/#" + encodedUrl);
+    }
+
+    public static void getAstParent(Node tree) {
+        if (tree.getListChild().size() != 0) {
+            for (Node children : tree.getListChild()) {
+                children.setParent(tree);
+                getAstParent(children);
+            }
+        }
     }
 }

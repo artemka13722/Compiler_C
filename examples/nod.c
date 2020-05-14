@@ -4,16 +4,18 @@ int main(){
     int b;
     int tmp;
 
-   scanf("введите а %d", a);
-   scanf("введите b %d", b);
+    printf("введите а\n");
+    scanf("%d", a);
+    printf("введите b\n");
+    scanf("%d", b);
 
     while (a != b) {
-            if (a > b) {
-                tmp = a;
-                a = b;
-                b = tmp;
-            }
-            b = b - a;
+        if (a > b) {
+        tmp = a;
+        a = b;
+        b = tmp;
         }
+        b = b - a;
+    }
     printf("%d\n",a);
 }
