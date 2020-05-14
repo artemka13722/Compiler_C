@@ -4,8 +4,7 @@ int main () {
     char c = strstr(q,r);
     if( c == "null") {
         printf("\nFALSE");
+    } else {
+        printf("\nTRUE");
     }
-    if( c != "null") {
-         printf("\nTRUE");
-     }
 }
