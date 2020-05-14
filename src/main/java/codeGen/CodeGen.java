@@ -502,12 +502,7 @@ public class CodeGen {
                     String arValue = nameArray1 + val1;
                     assembler.add("movl\t-" + addressVar.get(arValue) + "(%rbp),\t%eax");
                 } else {
-                    assembler.add("movl    -"+ addressVar.get(val1)+"(%rbp), %eax");
-                    assembler.add("cltd");
-
-                    List<String> addresArray = arrays.get(nameArray1);
-                    nameArray1 = nameArray1 + (addresArray.size()-1);
-
+                    arrayToAsm(val1, nameArray1, assembler);
                     assembler.add("movl    -"+ addressVar.get(nameArray1) +"(%rbp,%rax,4), %eax");
                 }
             }
@@ -526,14 +521,7 @@ public class CodeGen {
                     String arValue = nameArray2+ val2;
                     assembler.add("cmpl\t-" + addressVar.get(arValue) + "(%rbp),\t%eax");
                 } else {
-                    assembler.add("movl    -"+ addressVar.get(val2)+"(%rbp), %eax");
-                    assembler.add("cltd");
-
-                    List<String> addresArray = arrays.get(nameArray2);
-                    nameArray2 = nameArray2 + (addresArray.size()-1);
-
-                    assembler.add("movl    -"+ addressVar.get(nameArray2) +"(%rbp,%rax,4), %eax");
-
+                   arrayToAsm(val2, nameArray2, assembler);
                     assembler.add("cmpl\t%eax,\t-" + addressVar.get(val2) + "(%rbp)"); // val1
                 }
             }
@@ -541,6 +529,16 @@ public class CodeGen {
         singType(signType, assembler, randForCommand, numberIfWhile, type);
     }
 
+
+    public void arrayToAsm(String val, String nameArray, List<String> assembler){
+        assembler.add("movl    -"+ addressVar.get(val)+"(%rbp), %eax");
+        assembler.add("cltd");
+
+        List<String> addresArray = arrays.get(nameArray);
+        nameArray = nameArray + (addresArray.size()-1);
+
+        assembler.add("movl    -"+ addressVar.get(nameArray) +"(%rbp,%rax,4), %eax");
+    }
 
     public void singType(String signType, List<String> assembler, Integer randForCommand, Integer numberIfWhile, TokenType type){
 
