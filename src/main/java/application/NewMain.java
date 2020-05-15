@@ -10,10 +10,7 @@ import parser.Node;
 import parser.Parser;
 import semantic.Sema;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +99,9 @@ public class NewMain {
 
         String echo = "gcc -o " + nameProgram + " -no-pie " + nameAsm;
         Runtime.getRuntime().exec(echo);
+
+        File file = new File(String.valueOf(nameAsm));
+        file.delete();
     }
 
     public static void dumpAsm(Reader fileReader) throws CloneNotSupportedException {

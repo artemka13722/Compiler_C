@@ -895,7 +895,6 @@ public class CodeGen {
 
             switch (type){
                 case MINUS:
-
                     if (isNumeric(num2)) {
                         commandAssembler.add("\tsubl\t$" + num2 + ", %edx");
                     } else {
@@ -906,7 +905,6 @@ public class CodeGen {
                     commandAssembler.add("\tmovl\t%edx, -" + addressVar.get(nameVariable) + "(%rbp)");
                     break;
                 case PLUS:
-                    System.out.println("plus");
                     if (isNumeric(num2)) {
                         commandAssembler.add("\taddl\t$" + num2 + ", %edx");
                     } else {
