@@ -39,6 +39,14 @@ public class NewMain {
     public static void compiler(String[] args) throws CloneNotSupportedException, ExceptionCommand, IOException {
         Reader fileReader;
         try {
+
+            if(!checkFile()){
+                System.out.println("Расширение файла должно быть .c");
+                System.exit(0);
+            }
+
+
+
             fileReader = new FileReader(inputFile);
         } catch (IOException e) {
             System.out.println("Не смогли открыть файл: " + inputFile);
@@ -46,7 +54,7 @@ public class NewMain {
         }
 
         if (option == null) {
-            compile(fileReader);
+            compile(fileReader, inputFile);
         } else {
             switch (option) {
                 case "--dump-tokens":
@@ -67,8 +75,7 @@ public class NewMain {
     }
 
     // в процессе
-    public static void compile(Reader fileReader) throws CloneNotSupportedException, IOException {
-        Buffer buffer = new Buffer(fileReader);
+    public static void compile(Reader fileReader, String inputFile) throws CloneNotSupportedException, IOException { Buffer buffer = new Buffer(fileReader);
         Lexer lexer = new Lexer(buffer);
         Parser parser = new Parser(lexer);
         Node programTree = parser.parseProgram();
@@ -80,11 +87,21 @@ public class NewMain {
 
         CodeGen codeGen = new CodeGen(programTree);
 
-        FileWriter writer = new FileWriter("./asm.txt");
+        StringBuilder nameAsm = new StringBuilder(inputFile);
+        nameAsm.setCharAt(inputFile.length()-1, 's');
+
+        FileWriter writer = new FileWriter(String.valueOf(nameAsm));
         for(String str: codeGen.getAssembler()) {
             writer.write(str + System.lineSeparator());
         }
         writer.close();
+
+        StringBuilder nameProgram = new StringBuilder(inputFile);
+        nameProgram.setCharAt(inputFile.length()-1, ' ');
+        nameProgram.setCharAt(inputFile.length()-2, ' ');
+
+        String echo = "gcc -o " + nameProgram + " -no-pie " + nameAsm;
+        Runtime.getRuntime().exec(echo);
     }
 
     public static void dumpAsm(Reader fileReader) throws CloneNotSupportedException {
@@ -184,5 +201,10 @@ public class NewMain {
                 getAstParent(children);
             }
         }
+    }
+
+
+    public static boolean checkFile(){
+        return (inputFile.charAt(inputFile.length()-1) == 'c' && inputFile.charAt(inputFile.length()-2) == '.');
     }
 }

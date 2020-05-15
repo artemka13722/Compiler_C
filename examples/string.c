@@ -3,8 +3,8 @@ int main () {
     char r = "caa";
     char c = strstr(q,r);
     if( c == "null") {
-        printf("\nFALSE");
+        printf("FALSE\n");
     } else {
-        printf("\nTRUE");
+        printf("TRUE\n");
     }
 }

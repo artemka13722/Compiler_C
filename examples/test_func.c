@@ -6,5 +6,5 @@ int square(int a){
 int main(){
     int a = 5;
     a = square(a);
-    printf("%d", a);
+    printf("%d\n", a);
 }

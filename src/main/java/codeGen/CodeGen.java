@@ -10,24 +10,18 @@ import java.util.Map;
 
 public class CodeGen {
 
-
-
-
     private Integer numberLC;
-
-    private Integer bodyCounter = 0;
-
     private Node tree;
     private Map<Integer, Character> subLevel;
     private Integer level;
     private Map<String, Integer> addressVar;
+    private Map<String, List<String>> arrays;
+    private List<String> assembler;
 
     private Integer varBytes = 0;
     private Integer node = 0;
-    Map<String, List<String>> arrays = new HashMap<>();
-    private List<String> assembler = new ArrayList<>();
-    String nameVariable = null;
-
+    private Integer bodyCounter = 0;
+    private String nameVariable = null;
     private boolean returned = false;
     private String nameFunc = null;
 
@@ -35,7 +29,10 @@ public class CodeGen {
         this.subLevel = new HashMap<>();
         this.level = 0;
         this.tree = tree;
-        addressVar = new HashMap<>();
+        this.addressVar = new HashMap<>();
+        this.arrays = new HashMap<>();
+        this.assembler = new ArrayList<>();
+
         generator();
     }
 
@@ -149,7 +146,6 @@ public class CodeGen {
                     functionBody(functionParam);
                     break;
             }
-
         }
     }
 
@@ -191,7 +187,6 @@ public class CodeGen {
                 }
             }
         }
-
     }
 
     public void assemblerFunctionNmae(Node functionName) {
@@ -212,7 +207,6 @@ public class CodeGen {
         }*/
 
         assembler.add("\tsubq\t$2048, %rsp");
-
     }
 
     public void functionBody(Node functionBody) {
@@ -280,7 +274,6 @@ public class CodeGen {
 
         for (Node command : bodyCommand.getListChild()) {
             switch (command.getTokenType()) {
-
                 case STRSTR:
                     strstr(command, commandAssembler);
                     break;
@@ -295,16 +288,13 @@ public class CodeGen {
                         System.out.println("Возкращать можно только int");
                         System.exit(0);
                     }
-
                     break;
                 case INT:
                     nameVariable = command.getFirstChildren().getTokenValue().toString();
                     if (announcementVar) {
                         setVar(nameVariable, TokenType.INT);
                     } else if(returned){
-
-                        // TODO: 06.05.2020 пока возвращает ток переменные, возможно добавлю арифметику
-
+                        // возврат
                         if(isNumeric(nameVariable)){
                             commandAssembler.add("\tmovl\t$" + nameVariable + ", %eax");
                         } else {
@@ -381,11 +371,9 @@ public class CodeGen {
                     }
                     break;
                 case EMPTY:
-
                     if (literalCheck) {
                         assembler.addAll(0, literal);
                     }
-
                     if(ifCommand){
                         if(assemblerElse.size() == 0){
                             commandAssembler.addAll(assemblerThen);
@@ -420,7 +408,6 @@ public class CodeGen {
         assembler.add("\tmovq\t%rax, %rdi");
         assembler.add("\tcall\tstrstr");
         assembler.add("\tmovq\t%rax, -" + addressVar.get(nameVariable) + "(%rbp)");
-
     }
 
 
@@ -523,8 +510,6 @@ public class CodeGen {
                     arrayToAsm(val1, nameArray1, assembler);
                 }
             }
-
-
 
             if(nameArray2 == null){
                 if(isNumeric(val2)){
@@ -634,7 +619,13 @@ public class CodeGen {
         for(Node arChild : array.getListChild()){
             switch (arChild.getTokenType()){
                 case INT:
-                    countArray = (int) arChild.getFirstChildren().getTokenValue();
+                    try {
+                        countArray = (int) arChild.getFirstChildren().getTokenValue();
+                    } catch (ClassCastException e){
+                        System.out.println("Индекс массива не может быть переменной");
+                        System.exit(0);
+                    }
+
                     break;
                 case ARRAY_BODY:
                     body = arrayBody(arChild, countArray);
