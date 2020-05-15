@@ -439,7 +439,6 @@ public class CodeGen {
                         lit2 = condition.getTokenValue().toString();
                     }
                     break;
-                // массив
                 case NAME:
                     if(count == 0){
                         nameArray1 = condition.getTokenValue().toString();
@@ -471,7 +470,6 @@ public class CodeGen {
             assembler.add(getNameWhile(randForCommand, numberIfWhile) + ":");
         }
 
-        // костыляция
         if(literal){
 
             if(lit1 != null){
@@ -481,7 +479,7 @@ public class CodeGen {
                 } else {
                     StringBuilder str = new StringBuilder();
                     for(int i = lit1.length(); i > 0; i--){
-                        str.append(Integer.toHexString((int) lit1.charAt(i-1)));
+                        str.append(Integer.toHexString(lit1.charAt(i-1)));
                     }
                     assembler.add("\tcmp\t0x"+str + ",\t-" + addressVar.get(val2) + "(%rbp)");
                 }
@@ -502,7 +500,6 @@ public class CodeGen {
                     assembler.add("\tmovl\t-" + addressVar.get(val1) + "(%rbp),\t%eax");
                 }
             } else {
-                // значит это массив
                 if(isNumeric(val1)){
                     String arValue = nameArray1 + val1;
                     assembler.add("\tmovl\t-" + addressVar.get(arValue) + "(%rbp),\t%eax");
@@ -518,7 +515,6 @@ public class CodeGen {
                     assembler.add("\tcmpl\t-"+ addressVar.get(val2)+ "(%rbp),\t%eax");
                 }
             } else {
-                // значит это массив
                 if(isNumeric(val2)){
                     String arValue = nameArray2+ val2;
                     assembler.add("\tcmpl\t-" + addressVar.get(arValue) + "(%rbp),\t%eax");
@@ -528,6 +524,7 @@ public class CodeGen {
                 }
             }
         }
+        assert signType != null;
         singType(signType, assembler, randForCommand, numberIfWhile, type);
     }
 
@@ -707,7 +704,6 @@ public class CodeGen {
                     }
                 }
 
-
                 switch (arguments.size()){
                     case 0:
                         commandAssembler.add("\tmovl\t$0,\t%eax");
@@ -727,14 +723,8 @@ public class CodeGen {
                         }
                         break;
                     case 2:
-
-                        int numCount = 0;
-
                         if(isNumeric(arguments.get(0))){
-
                             commandAssembler.add("\tmovl\t$" + arguments.get(0) + ", %edi");
-                            numCount++;
-
                         } else {
                             commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(0)) + "(%rbp), %eax");
                             commandAssembler.add("\tmovl\t%eax, %edi");
@@ -742,21 +732,10 @@ public class CodeGen {
 
                         if(isNumeric(arguments.get(1))){
                             commandAssembler.add("\tmovl\t$" + arguments.get(1) + ", %esi");
-                            numCount++;
                         } else {
-
                             commandAssembler.add("\tmovl\t-"+ addressVar.get(arguments.get(1)) + "(%rbp), %eax");
                             commandAssembler.add("\tmovl\t%eax, %esi");
                         }
-
-
-                        switch (numCount){
-                            case 0:
-                                commandAssembler.add("\tmovl\t%eax, %esi");
-                                commandAssembler.add("\tmovl\t%eax, %edi");
-                                break;
-                        }
-
                         commandAssembler.add("\tcall\t"+ nameFunction);
                         commandAssembler.add("\tmovl\t%eax,\t-"+ addressVar.get(nameVariable) +"(%rbp)");
                         break;
@@ -803,7 +782,7 @@ public class CodeGen {
                 String literal = number.getTokenValue().toString();
 
                 for(int i = literal.length(); i > 0; i--){
-                    str.append(Integer.toHexString((int) literal.charAt(i-1)));
+                    str.append(Integer.toHexString(literal.charAt(i-1)));
                 }
                 commandAssembler.add("\tmovabsq\t$0x" + str + ", %rax");
                 commandAssembler.add("\tmovq\t%rax, -" + addressVar.get(nameVariable) +"(%rbp)");
@@ -851,14 +830,18 @@ public class CodeGen {
                     }
 
                     break;
+                case DIVISION:
                 case MINUS:
                 case PLUS:
                 case MULTIPLICATION:
                     assemblerMath(number, commandAssembler, number.getParent().getParent().getTokenType());
                     break;
-                case DIVISION:
+
                     // разобраться с делением
-                    break;
+
+                    // деление переменной на переменную - изи
+                    // деление переменной на число или наоборот - число превращаем в переменную и делим
+                    // деление числа на число - поделить на джаве
             }
         }
     }
@@ -869,30 +852,65 @@ public class CodeGen {
             String num1 = number.getParent().getParent().getListChild().get(0).getFirstChildren().getTokenValue().toString();
             String num2 = number.getParent().getParent().getListChild().get(1).getFirstChildren().getTokenValue().toString();
 
+            if(type.equals(TokenType.DIVISION)){
+
+                if(isNumeric(num1) && isNumeric(num2)){
+
+                    int one = Integer.parseInt(num1);
+                    int two = Integer.parseInt(num2);
+
+                    String result = String.valueOf(one / two);
+                    assembler.add("\tmovl\t$" + result + ", -" + addressVar.get(nameVariable) + "(%rbp)");
+                } else {
+                    if(isNumeric(num1)){
+                        setVar("numDiv1", TokenType.INT);
+                        assembler.add("\tmovl\t$" + num1 + ", -" + addressVar.get("numDiv1") + "(%rbp)");
+                        assembler.add("\tmovl\t-" + addressVar.get("numDiv1") + "(%rbp), %eax");
+
+                    } else {
+                        assembler.add("\tmovl\t-" + addressVar.get(num1) + "(%rbp), %eax");
+                        assembler.add("\tcltd");
+                    }
+
+                    if(isNumeric(num2)){
+                        setVar("numDiv2", TokenType.INT);
+                        assembler.add("\tmovl\t$" + num2 + ", -" + addressVar.get("numDiv2") + "(%rbp)");
+                        assembler.add("\tidivl\t-" + addressVar.get("numDiv2") + "(%rbp)");
+                    } else {
+                        assembler.add("\tcltd");
+                        assembler.add("\tidivl\t-" + addressVar.get(num2) + "(%rbp)");
+                    }
+                    assembler.add("\tmovl\t%eax, -" +addressVar.get(nameVariable) + "(%rbp)");
+                }
+
+            } else
+
             if (isNumeric(num1)) {
                 commandAssembler.add("\tmovl\t$" + num1 + ", %edx");
             } else {
-                if (num1 != nameVariable) {
+                if (!num1.equals(nameVariable)) {
                     commandAssembler.add("\tmovl\t-" + addressVar.get(num1) + "(%rbp), %edx");
                 }
             }
 
             switch (type){
                 case MINUS:
+
                     if (isNumeric(num2)) {
                         commandAssembler.add("\tsubl\t$" + num2 + ", %edx");
                     } else {
-                        if (num2 != nameVariable) {
+                        if (!num2.equals(nameVariable)) {
                             commandAssembler.add("\tsubl\t-" + addressVar.get(num2) + "(%rbp), %edx");
                         }
                     }
                     commandAssembler.add("\tmovl\t%edx, -" + addressVar.get(nameVariable) + "(%rbp)");
                     break;
                 case PLUS:
+                    System.out.println("plus");
                     if (isNumeric(num2)) {
                         commandAssembler.add("\taddl\t$" + num2 + ", %edx");
                     } else {
-                        if (num2 != nameVariable) {
+                        if (!num2.equals(nameVariable)) {
                             commandAssembler.add("\taddl\t-" + addressVar.get(num2) + "(%rbp), %edx");
                         }
                     }
@@ -902,7 +920,7 @@ public class CodeGen {
                     if (isNumeric(num2)) {
                         commandAssembler.add("\tmovl\t$" + num2 + ", %eax");
                     } else {
-                        if (num2 != nameVariable) {
+                        if (!num2.equals(nameVariable)) {
                             commandAssembler.add("\tmovl\t-" + addressVar.get(num2) + "(%rbp), %eax");
                         }
                     }

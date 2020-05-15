@@ -30,13 +30,13 @@ public class NewMain {
 
         try {
             processingArguments(args);
-            compiler(args);
+            compiler();
         }catch (ExceptionCommand | CloneNotSupportedException | IOException e){
             e.printStackTrace();
         }
     }
 
-    public static void compiler(String[] args) throws CloneNotSupportedException, ExceptionCommand, IOException {
+    public static void compiler() throws CloneNotSupportedException, IOException {
         Reader fileReader;
         try {
 
@@ -154,8 +154,8 @@ public class NewMain {
             tokenList.add(lexer.getToken());
         }
 
-        for (int i = 0; i < tokenList.size(); i++) {
-            System.out.println(tokenList.get(i));
+        for (Token token : tokenList) {
+            System.out.println(token);
         }
     }
 
@@ -177,7 +177,7 @@ public class NewMain {
             if (args.length == 1) {
                 inputFile = args[0];
             } else {
-                inputFile = "./examples/min_array.c";
+                inputFile = "./examples/min_max_array_v2.c";
             }
         }
     }
@@ -185,12 +185,12 @@ public class NewMain {
     public static void convertDotToUrl(String dot) throws IOException {
         FileReader reader = new FileReader(dot);
         int c;
-        String test = "";
+        StringBuilder test = new StringBuilder();
         while ((c = reader.read()) != -1) {
-            test += (char) c;
+            test.append((char) c);
         }
 
-        String encodedUrl = URLEncoder.encode(test, "UTF-8").replace("+", "%20");
+        String encodedUrl = URLEncoder.encode(test.toString(), "UTF-8").replace("+", "%20");
         System.out.println("https://dreampuf.github.io/GraphvizOnline/#" + encodedUrl);
     }
 
