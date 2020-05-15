@@ -177,7 +177,7 @@ public class NewMain {
             if (args.length == 1) {
                 inputFile = args[0];
             } else {
-                inputFile = "./examples/min_max_array_v2.c";
+                inputFile = "./examples/min_max_array.c";
             }
         }
     }
