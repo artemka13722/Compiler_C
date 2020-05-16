@@ -654,7 +654,6 @@ public class Sema {
             }
         }
 
-// TODO: 08.05.2020 костыль который возможно не спасет
         if (!checkLvl) {
             nameLvl = (char) (lvl.charAt(1) - 1);
             for (Variable variable : variableList) {
@@ -699,8 +698,6 @@ public class Sema {
             }
         }
         return variableList.get(indexOfMax).getTokenType();
-
-        //return null;
     }
 
     public void condition(Node condition) throws CloneNotSupportedException {

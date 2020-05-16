@@ -4,9 +4,8 @@ int square(int a){
 }
 
 int sum(int i, int j){
-    int summ = 0;
-    summ =  i + j;
-    return summ;
+    int sum =  i + j;
+    return sum;
 }
 
 int main(){
@@ -14,5 +13,5 @@ int main(){
     a = square(a);
     printf("Квадрат %d\n", a);
     int b = sum(a, 10);
-    printf("Квадрат %d + 10 = %d\n", b);
+    printf("Квадрат %d + 10 = %d\n",a, b);
 }
