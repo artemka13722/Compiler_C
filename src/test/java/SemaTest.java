@@ -264,7 +264,7 @@ public class SemaTest {
         commandInt.setLeft(new Node(new Token<>(TokenType.NAME, "a")));
         commandBody1.setRight(commandInt);
 
-        commandBody1.setRight(new Node(TokenType.ASSIGNMENT));
+        Node assigment = new Node(TokenType.ASSIGNMENT);
 
         Node plus = new Node(TokenType.PLUS);
         Node num1Type = new Node(TokenType.INT);
@@ -275,7 +275,9 @@ public class SemaTest {
         plus.setLeft(num1Type);
         plus.setRight(num2Type);
 
-        commandBody1.setRight(plus);
+        assigment.setLeft(plus);
+
+        commandBody1.setRight(assigment);
         commandBody1.setRight(empty);
 
         Node commandBody2 = new Node(TokenType.COMMAND);
@@ -357,11 +359,17 @@ public class SemaTest {
         Node command3 = new Node(TokenType.COMMAND);
 
         command3.setLeft(commandInt);
-        command3.setRight(new Node(TokenType.ASSIGNMENT));
 
-        Node convert = new Node(TokenType.INTTOCHAR);
+        //command3.setRight(new Node(TokenType.ASSIGNMENT));
+
+        Node assigment = new Node(TokenType.ASSIGNMENT);
+
+        //Node convert = new Node(TokenType.INTTOCHAR);
+        Node convert = new Node(TokenType. CHAR);
         convert.setLeft(new Node(new Token<>(TokenType.NAME, "b")));
-        command3.setRight(convert);
+        assigment.setRight(convert);
+
+        command3.setRight(assigment);
 
         command3.setRight(empty);
 
