@@ -17,5 +17,5 @@ int main(){
         }
         b = b - a;
     }
-    printf("%d\n",a);
+    printf("НОД: %d\n",a);
 }

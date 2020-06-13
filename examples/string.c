@@ -1,7 +1,11 @@
 int main () {
-    char q = "acaa";
-    char r = "caa";
-    char c = strstr(q,r);
+    char a = "acaa";
+    char b = "caa";
+
+    printf("Строка  '%s'", a);
+    printf(" содержит строку '%s'?\n", b);
+
+    char c = strstr(a,b);
     if( c == "null") {
         printf("FALSE\n");
     } else {
